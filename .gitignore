@@ -16,3 +16,6 @@ hs_err_pid*
 /JavaFXMavenTest/target/
 /NetBeansJavaFXWithMaven/target/
 /Griswold/target
+/Griswold/.settings
+/JavaFXMavenTest
+/NetBeansJavaFXWithMaven
