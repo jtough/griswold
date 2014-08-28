@@ -4,10 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javafx.application.Application;
-import javafx.scene.Group;
-import javafx.scene.Scene;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
 /**
@@ -20,7 +16,10 @@ public class MainApp extends Application {
 
 	private static final Logger logger =
 			LoggerFactory.getLogger(MainApp.class);
-	
+
+	private NavigationController navController;
+	private MainController mainController;
+	private AuthenticationController authController;
 
 	@Override
 	public void init() {
@@ -34,7 +33,7 @@ public class MainApp extends Application {
 	}
 	
 	@Override
-	public void start(Stage primaryStage) throws Exception {
+	public void start(final Stage primaryStage) throws Exception {
 		
 		logger.info("start() | ENTER");
 		
@@ -49,12 +48,14 @@ public class MainApp extends Application {
 		//stage.setScene(scene);
 		//stage.show();
 		//-------------------------------------------------
+
+		primaryStage.hide();
 		
-		MainController mainController = new MainController(primaryStage);
+		navController = new NavigationController(primaryStage);
+		mainController = new MainController(primaryStage, navController);
 		mainController.createMainStageScene();
-		
-		AuthenticationController authController = new AuthenticationController();
-		authController.createAuthenticationDialogScene();
+		authController = new AuthenticationController(navController);
+		authController.createAuthenticationDialogScene(primaryStage);
 		
 //		// Now I create a second window. If you close the 'primary' stage
 //		// above, this 'secondary' stage still lives on. Not sure yet how

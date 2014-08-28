@@ -8,10 +8,14 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.PasswordField;
+import javafx.scene.control.Tooltip;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
@@ -38,22 +42,46 @@ public class AuthenticationController {
 	private final IntegerProperty ATTEMPTS = new SimpleIntegerProperty(0);
 	
 	private final Stage stage;
+	private final NavigationController navController;
 	
-	public AuthenticationController() {
+	public AuthenticationController(
+			NavigationController navController) {
+		if (navController == null) {
+			throw new IllegalArgumentException("navController cannot be null");
+		}
+		this.navController = navController;
 		this.stage = new Stage();
 	}
 
-	public void createAuthenticationDialogScene() {
+	public void onSuccessfulAuthentication() {
+		logger.info("onSuccessfulAuthentication() | INVOKED");
+		this.navController.authenticationSuccessful();
+		this.stage.close();
+	}
+	
+	public void createAuthenticationDialogScene(Stage parent) {
+		
 		// create a model representing a user
 		User user = new User();
 
 		// create a transparent stage
 		stage.initStyle(StageStyle.TRANSPARENT);
 		stage.initModality(Modality.APPLICATION_MODAL);
+		stage.initOwner(parent);
 		
 		Group root = new Group();
 		Scene scene = new Scene(root, 320, 112, Color.rgb(0, 0, 0, 0));
 		stage.setScene(scene);
+		scene.addEventHandler(KeyEvent.KEY_RELEASED,
+			new EventHandler<KeyEvent>() {
+				@Override
+				public void handle(KeyEvent event) {
+					if (event.getCode().equals(KeyCode.ESCAPE)) {
+						logger.info("Escape key pressed - exiting application");
+						Platform.exit();
+					}
+				}
+			});
 
 		// all text, borders, svg paths will use white
 		Color foregroundColor = Color.rgb(255, 255, 255, .9);
@@ -89,7 +117,7 @@ public class AuthenticationController {
 		HBox row1 = new HBox();
 		row1.getChildren().addAll(userNameCell, padLock);
 
-
+		//---------------------------------------------------------------
 		// password text field 
 		PasswordField passwordField = new PasswordField();
 		passwordField.setFont(Font.font("SanSerif", 20));
@@ -100,6 +128,14 @@ public class AuthenticationController {
 				+ "-fx-highlight-fill: gray; "
 				+ "-fx-background-color: rgba(255, 255, 255, .80); ");
 		passwordField.prefWidthProperty().bind(stage.widthProperty().subtract(55));
+		Tooltip passwordTT = new Tooltip("Heyo! Press Escape key to quit. Fake password is 'password1'.");
+		SVGPath passwordTtIcon = new SVGPath();
+		passwordTtIcon.setFill(foregroundColor);
+		passwordTtIcon.setContent("M16,1.466C7.973,1.466,1.466,7.973,1.466,16c0,8.027,6.507,14.534,14.534,14.534c8.027,0,14.534-6.507,14.534-14.534C30.534,7.973,24.027,1.466,16,1.466z M14.757,8h2.42v2.574h-2.42V8z M18.762,23.622H16.1c-1.034,0-1.475-0.44-1.475-1.496v-6.865c0-0.33-0.176-0.484-0.484-0.484h-0.88V12.4h2.662c1.035,0,1.474,0.462,1.474,1.496v6.887c0,0.309,0.176,0.484,0.484,0.484h0.88V23.622z");
+		passwordTT.setGraphic(passwordTtIcon);
+		passwordField.setTooltip(passwordTT);
+		//---------------------------------------------------------------
+		
 		user.passwordProperty().bind(passwordField.textProperty());
 
 		// error icon 
@@ -130,7 +166,8 @@ public class AuthenticationController {
 		passwordField.setOnAction(actionEvent -> {
 			if (GRANTED_ACCESS.get()) {
 				logger.info("User is granted access.");
-				Platform.exit();
+				this.onSuccessfulAuthentication();
+				//Platform.exit();
 			} else {
 				deniedIcon.setVisible(true); 
 			}
@@ -160,7 +197,7 @@ public class AuthenticationController {
 		formLayout.getChildren().addAll(row1, row2);
 		formLayout.setLayoutX(12);
 		formLayout.setLayoutY(12);
-
+		
 		root.getChildren().addAll(background, formLayout);
 
 		stage.show();
