@@ -4,6 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javafx.application.Application;
+import javafx.scene.Group;
+import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 /**
@@ -49,11 +51,13 @@ public class MainApp extends Application {
 		//stage.show();
 		//-------------------------------------------------
 
-		primaryStage.hide();
+		//primaryStage.hide();
+		primaryStage.show();
 		
 		navController = new NavigationController(primaryStage);
 		mainController = new MainController(primaryStage, navController);
-		mainController.createMainStageScene();
+		Scene scene = mainController.createMainStageScene();
+		//Group tickerGroup = mainController.createTickerControl(primaryStage, 1.0);
 		authController = new AuthenticationController(navController);
 		authController.createAuthenticationDialogScene(primaryStage);
 		
