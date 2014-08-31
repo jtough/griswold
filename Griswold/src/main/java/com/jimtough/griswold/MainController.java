@@ -1,12 +1,12 @@
 package com.jimtough.griswold;
 
+import java.io.IOException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javafx.animation.TranslateTransition;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.event.ActionEvent;
+import javafx.animation.FadeTransition;
+import javafx.animation.SequentialTransition;
 import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.Node;
@@ -30,7 +30,6 @@ import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -58,27 +57,32 @@ public class MainController {
 
 	private static final String SVG_INFO = "M16,1.466C7.973,1.466,1.466,7.973,1.466,16c0,8.027,6.507,14.534,14.534,14.534c8.027,0,14.534-6.507,14.534-14.534C30.534,7.973,24.027,1.466,16,1.466z M14.757,8h2.42v2.574h-2.42V8z M18.762,23.622H16.1c-1.034,0-1.475-0.44-1.475-1.496v-6.865c0-0.33-0.176-0.484-0.484-0.484h-0.88V12.4h2.662c1.035,0,1.474,0.462,1.474,1.496v6.887c0,0.309,0.176,0.484,0.484,0.484h0.88V23.622z";
 	private static final String SVG_POWER = "M25.542,8.354c-1.47-1.766-2.896-2.617-3.025-2.695c-0.954-0.565-2.181-0.241-2.739,0.724c-0.556,0.961-0.24,2.194,0.705,2.763c0,0,0.001,0,0.002,0.001c0.001,0,0.002,0.001,0.003,0.002c0.001,0,0.003,0.001,0.004,0.001c0.102,0.062,1.124,0.729,2.08,1.925c1.003,1.261,1.933,3.017,1.937,5.438c-0.001,2.519-1.005,4.783-2.64,6.438c-1.637,1.652-3.877,2.668-6.368,2.669c-2.491-0.001-4.731-1.017-6.369-2.669c-1.635-1.654-2.639-3.919-2.64-6.438c0.005-2.499,0.995-4.292,2.035-5.558c0.517-0.625,1.043-1.098,1.425-1.401c0.191-0.152,0.346-0.263,0.445-0.329c0.049-0.034,0.085-0.058,0.104-0.069c0.005-0.004,0.009-0.006,0.012-0.008s0.004-0.002,0.004-0.002l0,0c0.946-0.567,1.262-1.802,0.705-2.763c-0.559-0.965-1.785-1.288-2.739-0.724c-0.128,0.079-1.555,0.93-3.024,2.696c-1.462,1.751-2.974,4.511-2.97,8.157C2.49,23.775,8.315,29.664,15.5,29.667c7.186-0.003,13.01-5.892,13.012-13.155C28.516,12.864,27.005,10.105,25.542,8.354zM15.5,17.523c1.105,0,2.002-0.907,2.002-2.023h-0.001V3.357c0-1.118-0.896-2.024-2.001-2.024s-2.002,0.906-2.002,2.024V15.5C13.498,16.616,14.395,17.523,15.5,17.523z";
+	private static final String SVG_DOUBLE_QUOTE = "M14.505,5.873c-3.937,2.52-5.904,5.556-5.904,9.108c0,1.104,0.192,1.656,0.576,1.656l0.396-0.107c0.312-0.12,0.563-0.18,0.756-0.18c1.128,0,2.07,0.411,2.826,1.229c0.756,0.82,1.134,1.832,1.134,3.037c0,1.157-0.408,2.14-1.224,2.947c-0.816,0.807-1.801,1.211-2.952,1.211c-1.608,0-2.935-0.661-3.979-1.984c-1.044-1.321-1.565-2.98-1.565-4.977c0-2.259,0.443-4.327,1.332-6.203c0.888-1.875,2.243-3.57,4.067-5.085c1.824-1.514,2.988-2.272,3.492-2.272c0.336,0,0.612,0.162,0.828,0.486c0.216,0.324,0.324,0.606,0.324,0.846L14.505,5.873zM27.465,5.873c-3.937,2.52-5.904,5.556-5.904,9.108c0,1.104,0.192,1.656,0.576,1.656l0.396-0.107c0.312-0.12,0.563-0.18,0.756-0.18c1.104,0,2.04,0.411,2.808,1.229c0.769,0.82,1.152,1.832,1.152,3.037c0,1.157-0.408,2.14-1.224,2.947c-0.816,0.807-1.801,1.211-2.952,1.211c-1.608,0-2.935-0.661-3.979-1.984c-1.044-1.321-1.565-2.98-1.565-4.977c0-2.284,0.449-4.369,1.35-6.256c0.9-1.887,2.256-3.577,4.068-5.067c1.812-1.49,2.97-2.236,3.474-2.236c0.336,0,0.612,0.162,0.828,0.486c0.216,0.324,0.324,0.606,0.324,0.846L27.465,5.873z";
 	
 	private static final String APPLICATION_TITLE = "Griswold";
 	private static final int TICKER_HEIGHT = 30;
+	private static final int A_LITTLE_BIT_EXTRA = 20;
 	
 	private final Stage primaryStage;
 	private final NavigationController navController;
+	private final MovieQuoteCycler movieQuoteCycler;
 	
 	private Group rootNode = null;
 	private Scene scene = null;
 	private BorderPane borderPane = null;
 	private MenuBar menuBar = null;
-	private Group tickerArea = null;
+	private Node notificationArea = null;
 	
 	/**
 	 * Constructor
 	 * @param primaryStage Non-null
 	 * @param navController Non-null
+	 * @throws IOException 
 	 */
 	public MainController(
 			Stage primaryStage,
-			NavigationController navController) {
+			NavigationController navController) 
+			throws IOException {
 		if (primaryStage == null) {
 			throw new IllegalArgumentException("primaryStage cannot be null");
 		}
@@ -87,6 +91,7 @@ public class MainController {
 		}
 		this.primaryStage = primaryStage;
 		this.navController = navController;
+		this.movieQuoteCycler = new MovieQuoteCycler();
 	}
 
 	Group createRootNode() {
@@ -195,7 +200,12 @@ public class MainController {
 				SVG_INFO, "button 1");
 
 		Button b2 = createToolbarButton(
-				SVG_INFO, "button 2");
+				SVG_DOUBLE_QUOTE, "Cycle to next movie quote");
+		b2.setOnAction(actionEvent -> { 
+				SequentialTransition sequentialTransition = 
+						this.transitionByFading(this.notificationArea);
+				sequentialTransition.play();
+			});
 
 		Button bExit = createToolbarButton(
 				SVG_POWER, "Close application");
@@ -208,6 +218,36 @@ public class MainController {
 		return vBox;
 	}
 
+	Node createNotificationArea() {
+		Text text = new Text();
+		text.textProperty().bind(
+				this.movieQuoteCycler.currentMovieQuoteProperty());
+		text.minHeight(TICKER_HEIGHT);
+		text.maxHeight(TICKER_HEIGHT);
+		
+		this.notificationArea = text;
+		return text;
+	}
+
+	private SequentialTransition transitionByFading(Node node) {
+		FadeTransition fadeOut = 
+				new FadeTransition(Duration.millis(5000), node);
+		fadeOut.setFromValue(1.0);
+		fadeOut.setToValue(0.0);
+		
+		fadeOut.setOnFinished(
+				actionEvent -> this.movieQuoteCycler.cycleToNextQuote());
+		
+		FadeTransition fadeIn = 
+				new FadeTransition(Duration.millis(1000), node);
+		fadeIn.setFromValue(0.0);
+		fadeIn.setToValue(1.0);
+		
+		SequentialTransition seqTransition = 
+				new SequentialTransition(fadeOut, fadeIn);
+		return seqTransition;
+	}
+	
 	Rectangle createPlaceholderCenterRectangle() {
 		Rectangle rect = new Rectangle();
 		rect.widthProperty().bind(this.scene.widthProperty());
@@ -233,7 +273,8 @@ public class MainController {
 		hbox.prefHeightProperty().bind(
 				this.scene.heightProperty()
 				.subtract(this.menuBar.heightProperty())
-				.subtract(TICKER_HEIGHT));
+				.subtract(TICKER_HEIGHT)
+				.subtract(A_LITTLE_BIT_EXTRA));
 		
 		BackgroundFill bgFill = new BackgroundFill(Color.CORNFLOWERBLUE, null, null);
 		Background bg = new Background(bgFill);
@@ -241,86 +282,10 @@ public class MainController {
 		return hbox;
 	}
 	
-	private Group createTickerAreaGroup(
-//			final Stage stage, 
-//			final double rightPadding) {
-			final Stage stage) {
-//		Scene scene = stage.getScene();
-
-		// create ticker area
-		this.tickerArea = new Group();
-		Rectangle tickerRect = new Rectangle(scene.getWidth(), TICKER_HEIGHT);
-		tickerRect.getStyleClass().add("ticker-border");
-
-		Rectangle clipRegion = new Rectangle(scene.getWidth(), TICKER_HEIGHT);
-		clipRegion.getStyleClass().add("ticker-clip-region");
-		this.tickerArea.setClip(clipRegion);
-
-		// Resize the ticker area when the window is resized
-		//this.tickerArea.setTranslateX(6);
-		//this.tickerArea.translateYProperty().bind(
-		//		scene.heightProperty().subtract(tickerRect.getHeight() + 6));
-		//tickerRect.widthProperty().bind(
-		//		scene.widthProperty().subtract(rightPadding));
-		//clipRegion.widthProperty().bind(
-		//		scene.widthProperty().subtract(rightPadding));
-		//this.tickerArea.getChildren().add(tickerRect);
-		tickerRect.widthProperty().bind(scene.widthProperty());
-		clipRegion.widthProperty().bind(scene.widthProperty());
-		this.tickerArea.getChildren().add(tickerRect);
-		
-		// news feed container
-		FlowPane tickerContent = new FlowPane();
-
-		// add some news
-		Text news = new Text();
-		news.setText("JavaFX 8.0 News! | 85 and sunny | :)");
-		news.setFill(Color.WHITE);
-		tickerContent.getChildren().add(news);
-
-		DoubleProperty centerContentY = new SimpleDoubleProperty();
-		centerContentY.bind(clipRegion
-				.heightProperty()
-				.divide(2)
-				.subtract(tickerContent.heightProperty().divide(2)));
-
-		tickerContent.translateYProperty().bind(centerContentY);
-
-		this.tickerArea.getChildren().add(tickerContent);
-
-		// scroll news feed 
-		TranslateTransition tickerScroller = new TranslateTransition();
-		tickerScroller.setNode(tickerContent);
-		tickerScroller.setDuration(
-				Duration.millis(scene.getWidth() * 40));
-		tickerScroller.fromXProperty().bind(scene.widthProperty());
-		tickerScroller.toXProperty().bind(
-				tickerContent.widthProperty().negate());
-
-		// when ticker has finished reset and replay ticker animation
-		tickerScroller.setOnFinished((ActionEvent ae) -> {
-			tickerScroller.stop();
-			tickerScroller.setDuration(
-					Duration.millis(scene.getWidth() * 40));
-			tickerScroller.playFromStart();
-		});
-		// start ticker after nodes are shown.
-		stage.setOnShown( windowEvent -> {
-			logger.info("stage.setOnShown() | INVOKED");
-			tickerScroller.play();
-		});
-
-		this.borderPane.setBottom(this.tickerArea);
-		
-		return this.tickerArea;
-	}
-	
 	private void setSillyProperties(Node node) {
 		node.setOpacity(0.5);
 		node.setEffect(new GaussianBlur());
 	}
-	
-	
 	
 	public Scene createMainStageScene() {
 		primaryStage.setWidth(800);
@@ -349,8 +314,8 @@ public class MainController {
 		HBox hbox = createHBox();
 		borderPane.setCenter(hbox);
 
-		
-		createTickerAreaGroup(primaryStage);
+		Node notificationArea = createNotificationArea();
+		borderPane.setBottom(notificationArea);
 		
 		// Play with some effects and stuff
 //		setSillyProperties(borderPane.getCenter());
