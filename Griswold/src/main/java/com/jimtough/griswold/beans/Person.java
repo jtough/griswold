@@ -68,5 +68,11 @@ public class Person {
 		setFirstName(firstName);
 		setLastName(lastName);
 	}
+	
+	public String toString() {
+		return firstName.getValue() + 
+				" " + lastName.getValue() 
+				+ " \"" + aliasName.getValue() + "\"";
+	}
 
 }

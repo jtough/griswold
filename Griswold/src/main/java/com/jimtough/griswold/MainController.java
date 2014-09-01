@@ -11,6 +11,7 @@ import com.jimtough.griswold.beans.Person;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.SequentialTransition;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -305,6 +306,16 @@ public class MainController {
 		samplePersonList.add(new Person("The Duke", "John", "Wayne"));
 		samplePersonList.add(new Person("Ol' Pudgy", "Stephen", "Harper"));
 		samplePersonList.add(new Person("L'il Cheech", "Justin", "Trudeau"));
+		
+		// selection listening
+		tv.getSelectionModel().selectedItemProperty().addListener(
+				(ObservableValue<? extends Person> observable, Person oldValue, Person newValue) -> {
+			if (observable != null && observable.getValue() != null) {
+				logger.info("New item selected: " +
+						" | old: " + oldValue +
+						" | new: " + newValue);
+			}
+		});
 		
         teamMembers.clear();
         teamMembers.setAll(samplePersonList);
