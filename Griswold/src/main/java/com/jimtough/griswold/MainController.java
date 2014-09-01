@@ -34,6 +34,7 @@ import javafx.scene.effect.GaussianBlur;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Border;
@@ -82,6 +83,8 @@ public class MainController {
 	private BorderPane borderPane = null;
 	private MenuBar menuBar = null;
 	private Node notificationArea = null;
+
+	private ObservableList<Person> observablePersonList;
 	
 	/**
 	 * Constructor
@@ -118,6 +121,21 @@ public class MainController {
 	BorderPane createBorderPane() {
 		this.borderPane = new BorderPane();
 		return this.borderPane;
+	}
+	
+	ObservableList<Person> createObservablePersonList() {
+		observablePersonList = FXCollections.observableArrayList();
+		
+		List<Person> samplePersonList = new ArrayList<Person>();
+		samplePersonList.add(new Person("Jim", "James", "Tough", "jim@jimtough.com"));
+		samplePersonList.add(new Person("The Duke", "John", "Wayne", null));
+		samplePersonList.add(new Person("Ol' Pudgy", "Stephen", "Harper", null));
+		samplePersonList.add(new Person("L'il Cheech", "Justin", "Trudeau", null));
+		
+		observablePersonList.clear();
+		observablePersonList.setAll(samplePersonList);
+		
+		return observablePersonList;
 	}
 	
 	MenuBar createMenuBar(final NavigationController navController) {
@@ -270,9 +288,9 @@ public class MainController {
 		return rect;
 	}
 
-	TableView<Person> createTableView() {
+	TableView<Person> createTableView(
+			final ObservableList<Person> observablePersonList) {
 		TableView<Person> tv = new TableView<Person>();
-		//tv.setPrefWidth(300);
 		tv.prefWidthProperty().bind(
 				this.scene.widthProperty()
 				.subtract(this.menuBar.widthProperty()));
@@ -282,30 +300,47 @@ public class MainController {
 				.subtract(TICKER_HEIGHT)
 				.subtract(A_LITTLE_BIT_EXTRA));
 		
-		final ObservableList<Person> teamMembers = FXCollections.observableArrayList();
-		tv.setItems(teamMembers);
+		//final ObservableList<Person> teamMembers = FXCollections.observableArrayList();
+		tv.setItems(observablePersonList);
+		
+		tv.setOnMouseClicked(event -> {
+			if (event.getButton().equals(MouseButton.PRIMARY)) {
+				if (event.getClickCount() > 1) {
+					logger.info("Mouse click count: " + event.getClickCount());
+					Person selectedPerson = 
+							tv.getSelectionModel().getSelectedItem();
+					PersonDetailsController pdc = 
+							new PersonDetailsController(navController);
+					pdc.createPersonDetailsModalDialogScene(primaryStage, selectedPerson);
+				}
+			}
+		});
 		
 		TableColumn<Person, String> aliasNameCol = new TableColumn<>("Alias");
 		aliasNameCol.setEditable(true);
-		aliasNameCol.setCellValueFactory(new PropertyValueFactory("aliasName"));
+		aliasNameCol.setCellValueFactory(new PropertyValueFactory<Person,String>("aliasName"));
 		
-		aliasNameCol.setPrefWidth(tv.getPrefWidth() / 3);
+		aliasNameCol.setPrefWidth(tv.getPrefWidth() / 4);
 		
 		TableColumn<Person, String> firstNameCol = new TableColumn<>("First Name");
-		firstNameCol.setCellValueFactory(new PropertyValueFactory("firstName"));
-		firstNameCol.setPrefWidth(tv.getPrefWidth() / 3);
+		firstNameCol.setCellValueFactory(new PropertyValueFactory<Person,String>("firstName"));
+		firstNameCol.setPrefWidth(tv.getPrefWidth() / 4);
 		
 		TableColumn<Person, String> lastNameCol = new TableColumn<>("Last Name");
-		lastNameCol.setCellValueFactory(new PropertyValueFactory("lastName"));
-		lastNameCol.setPrefWidth(tv.getPrefWidth() / 3);
+		lastNameCol.setCellValueFactory(new PropertyValueFactory<Person,String>("lastName"));
+		lastNameCol.setPrefWidth(tv.getPrefWidth() / 4);
 		
-		tv.getColumns().setAll(aliasNameCol, firstNameCol, lastNameCol);
+		TableColumn<Person, String> emailCol = new TableColumn<>("Email");
+		emailCol.setCellValueFactory(new PropertyValueFactory<Person,String>("email"));
+		emailCol.setPrefWidth(tv.getPrefWidth() / 4);
+
+		List<TableColumn<Person,String>> tableColumnList = new ArrayList<>();
+		tableColumnList.add(aliasNameCol);
+		tableColumnList.add(firstNameCol);
+		tableColumnList.add(lastNameCol);
+		tableColumnList.add(emailCol);
 		
-		List<Person> samplePersonList = new ArrayList<Person>();
-		samplePersonList.add(new Person("Jim", "James", "Tough"));
-		samplePersonList.add(new Person("The Duke", "John", "Wayne"));
-		samplePersonList.add(new Person("Ol' Pudgy", "Stephen", "Harper"));
-		samplePersonList.add(new Person("L'il Cheech", "Justin", "Trudeau"));
+		tv.getColumns().setAll(tableColumnList);
 		
 		// selection listening
 		tv.getSelectionModel().selectedItemProperty().addListener(
@@ -316,10 +351,6 @@ public class MainController {
 						" | new: " + newValue);
 			}
 		});
-		
-        teamMembers.clear();
-        teamMembers.setAll(samplePersonList);
-		
 		
 		return tv;
 	}
@@ -350,7 +381,7 @@ public class MainController {
 	
 	private void setSillyProperties(Node node) {
 		node.setOpacity(0.5);
-		node.setEffect(new GaussianBlur());
+		node.setEffect(new GaussianBlur(5.5));
 	}
 	
 	public Scene createMainStageScene() {
@@ -379,16 +410,21 @@ public class MainController {
 		//this.borderPane.setCenter(rect);
 		//HBox hbox = createHBox();
 		//borderPane.setCenter(hbox);
-		TableView tv = createTableView();
+		
+		ObservableList<Person> opl = createObservablePersonList();
+		
+		TableView<Person> tv = createTableView(opl);
 		borderPane.setCenter(tv);
 
 		Node notificationArea = createNotificationArea();
 		borderPane.setBottom(notificationArea);
 		
 		// Play with some effects and stuff
-//		setSillyProperties(borderPane.getCenter());
-//		setSillyProperties(hbox);
-
+		//setSillyProperties(borderPane.getCenter());
+		//setSillyProperties(hbox);
+		//setSillyProperties(rootNode);
+		
+		
 		//primaryStage.setWidth(800);
 		//primaryStage.setHeight(600);
 		primaryStage.setOnShown((WindowEvent we) -> {

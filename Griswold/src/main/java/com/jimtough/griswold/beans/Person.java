@@ -9,9 +9,9 @@ public class Person {
 
 	private StringProperty aliasName;
 	private StringProperty firstName;
-	private StringProperty lastName;    
+	private StringProperty lastName;
+	private SimpleStringProperty email;
 	private ObservableList<Person> employees = FXCollections.observableArrayList();
-
 
 	public final void setAliasName(String value) {
 		aliasNameProperty().set(value);
@@ -58,21 +58,35 @@ public class Person {
 		return lastName;
 	}
 
+	public String getEmail() {
+		return email.get();
+	}
+
+	public final void setEmail(String value) {
+		emailProperty().set(value);
+	}
+
+	public StringProperty emailProperty() {
+		if (email == null) {
+			email = new SimpleStringProperty();
+		}
+		return email;
+	}
+	
 
 	public ObservableList<Person> employeesProperty() {
 		return employees;
 	}
 
-	public Person(String alias, String firstName, String lastName) {
+	public Person(String alias, String firstName, String lastName, String email) {
 		setAliasName(alias);
 		setFirstName(firstName);
 		setLastName(lastName);
+		setEmail(email);
 	}
 	
 	public String toString() {
-		return firstName.getValue() + 
-				" " + lastName.getValue() 
-				+ " \"" + aliasName.getValue() + "\"";
+		return firstName.getValue() + " " + lastName.getValue();
 	}
 
 }
