@@ -101,7 +101,7 @@ public class MainController {
 
 	Scene createScene(final Group rootNode) {
 		this.scene = new Scene(rootNode, 300, 250);
-		this.scene.setFill(new Color(0, 0.25, 0.25, 0.5));
+		this.scene.setFill(Color.LIGHTGREY);
 		return this.scene;
 	}
 
@@ -220,6 +220,8 @@ public class MainController {
 
 	Node createNotificationArea() {
 		Text text = new Text();
+		text.wrappingWidthProperty().bind(
+				this.scene.widthProperty().subtract(A_LITTLE_BIT_EXTRA));
 		text.textProperty().bind(
 				this.movieQuoteCycler.currentMovieQuoteProperty());
 		text.minHeight(TICKER_HEIGHT);
@@ -231,7 +233,7 @@ public class MainController {
 
 	private SequentialTransition transitionByFading(Node node) {
 		FadeTransition fadeOut = 
-				new FadeTransition(Duration.millis(5000), node);
+				new FadeTransition(Duration.millis(3000), node);
 		fadeOut.setFromValue(1.0);
 		fadeOut.setToValue(0.0);
 		

@@ -47,7 +47,7 @@ public class MovieQuoteCycler {
 		String nextQuote = movieQuoteList.get(currentQuoteIndex);
 		currentQuoteIndex++;
 		currentMovieQuote.setValue(nextQuote);
-		logger.info("Cycled to next quote: " + nextQuote);
+		logger.debug("Cycled to next quote: " + nextQuote);
 	}
 
 	public ReadOnlyStringProperty currentMovieQuoteProperty() {
