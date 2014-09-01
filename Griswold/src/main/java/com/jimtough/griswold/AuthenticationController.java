@@ -3,6 +3,8 @@ package com.jimtough.griswold;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.jimtough.griswold.beans.User;
+
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;

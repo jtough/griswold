@@ -1,12 +1,18 @@
 package com.jimtough.griswold;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.jimtough.griswold.beans.Person;
+
 import javafx.animation.FadeTransition;
 import javafx.animation.SequentialTransition;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.Node;
@@ -18,8 +24,11 @@ import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.RadioMenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
@@ -259,6 +268,50 @@ public class MainController {
 					.subtract(TICKER_HEIGHT));
 		return rect;
 	}
+
+	TableView<Person> createTableView() {
+		TableView<Person> tv = new TableView<Person>();
+		//tv.setPrefWidth(300);
+		tv.prefWidthProperty().bind(
+				this.scene.widthProperty()
+				.subtract(this.menuBar.widthProperty()));
+		tv.prefHeightProperty().bind(
+				this.scene.heightProperty()
+				.subtract(this.menuBar.heightProperty())
+				.subtract(TICKER_HEIGHT)
+				.subtract(A_LITTLE_BIT_EXTRA));
+		
+		final ObservableList<Person> teamMembers = FXCollections.observableArrayList();
+		tv.setItems(teamMembers);
+		
+		TableColumn<Person, String> aliasNameCol = new TableColumn<>("Alias");
+		aliasNameCol.setEditable(true);
+		aliasNameCol.setCellValueFactory(new PropertyValueFactory("aliasName"));
+		
+		aliasNameCol.setPrefWidth(tv.getPrefWidth() / 3);
+		
+		TableColumn<Person, String> firstNameCol = new TableColumn<>("First Name");
+		firstNameCol.setCellValueFactory(new PropertyValueFactory("firstName"));
+		firstNameCol.setPrefWidth(tv.getPrefWidth() / 3);
+		
+		TableColumn<Person, String> lastNameCol = new TableColumn<>("Last Name");
+		lastNameCol.setCellValueFactory(new PropertyValueFactory("lastName"));
+		lastNameCol.setPrefWidth(tv.getPrefWidth() / 3);
+		
+		tv.getColumns().setAll(aliasNameCol, firstNameCol, lastNameCol);
+		
+		List<Person> samplePersonList = new ArrayList<Person>();
+		samplePersonList.add(new Person("Jim", "James", "Tough"));
+		samplePersonList.add(new Person("The Duke", "John", "Wayne"));
+		samplePersonList.add(new Person("Ol' Pudgy", "Stephen", "Harper"));
+		samplePersonList.add(new Person("L'il Cheech", "Justin", "Trudeau"));
+		
+        teamMembers.clear();
+        teamMembers.setAll(samplePersonList);
+		
+		
+		return tv;
+	}
 	
 	HBox createHBox() {
 		HBox hbox = new HBox(5);         // pixels space between child nodes
@@ -313,8 +366,10 @@ public class MainController {
 		// Create a dummy node to display in the center of the BorderPane
 		//Rectangle rect = createPlaceholderCenterRectangle();
 		//this.borderPane.setCenter(rect);
-		HBox hbox = createHBox();
-		borderPane.setCenter(hbox);
+		//HBox hbox = createHBox();
+		//borderPane.setCenter(hbox);
+		TableView tv = createTableView();
+		borderPane.setCenter(tv);
 
 		Node notificationArea = createNotificationArea();
 		borderPane.setBottom(notificationArea);
@@ -326,8 +381,8 @@ public class MainController {
 		//primaryStage.setWidth(800);
 		//primaryStage.setHeight(600);
 		primaryStage.setOnShown((WindowEvent we) -> {
-			logger.info("hbox width  " + hbox.getBoundsInParent().getWidth());
-			logger.info("hbox height " + hbox.getBoundsInParent().getHeight());
+			//logger.info("hbox width  " + hbox.getBoundsInParent().getWidth());
+			//logger.info("hbox height " + hbox.getBoundsInParent().getHeight());
 			//logger.info("rect width  " + rect.getBoundsInParent().getWidth());
 			//logger.info("rect height " + rect.getBoundsInParent().getHeight());
 		});

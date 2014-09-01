@@ -1,4 +1,4 @@
-package com.jimtough.griswold;
+package com.jimtough.griswold.beans;
 
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
