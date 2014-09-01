@@ -25,7 +25,13 @@ public class MovieQuoteCycler {
 	private final ReadOnlyStringWrapper currentMovieQuote;
 	
 	
-	public MovieQuoteCycler() throws IOException {
+	public MovieQuoteCycler(
+			final ReadOnlyStringWrapper currentMovieQuote) 
+			throws IOException {
+		if (currentMovieQuote == null) {
+			throw new IllegalArgumentException(
+					"currentMovieQuote cannot be null");
+		}
 		InputStream is = this.getClass().getResourceAsStream(
 				MOVIE_QUOTES_RESOURCE_FILE);
 		BufferedReader br = new BufferedReader(new InputStreamReader(is));
@@ -36,7 +42,7 @@ public class MovieQuoteCycler {
 		if (movieQuoteList.isEmpty()) {
 			throw new IllegalStateException("No movie quotes loaded");
 		}
-		currentMovieQuote = new ReadOnlyStringWrapper();
+		this.currentMovieQuote = currentMovieQuote;
 		cycleToNextQuote();
 	}
 

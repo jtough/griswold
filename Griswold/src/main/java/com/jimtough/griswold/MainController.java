@@ -11,9 +11,14 @@ import com.jimtough.griswold.beans.Person;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.SequentialTransition;
+import javafx.application.Platform;
+import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.ScheduledService;
+import javafx.concurrent.Task;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.Node;
@@ -77,6 +82,7 @@ public class MainController {
 	private final Stage primaryStage;
 	private final NavigationController navController;
 	private final MovieQuoteCycler movieQuoteCycler;
+	private final ReadOnlyStringWrapper notificationAreaTextString;
 	
 	private Group rootNode = null;
 	private Scene scene = null;
@@ -104,7 +110,9 @@ public class MainController {
 		}
 		this.primaryStage = primaryStage;
 		this.navController = navController;
-		this.movieQuoteCycler = new MovieQuoteCycler();
+		this.notificationAreaTextString = new ReadOnlyStringWrapper();
+		this.movieQuoteCycler = new MovieQuoteCycler(
+				this.notificationAreaTextString);
 	}
 
 	Group createRootNode() {
@@ -229,10 +237,8 @@ public class MainController {
 
 		Button b2 = createToolbarButton(
 				SVG_DOUBLE_QUOTE, "Cycle to next movie quote");
-		b2.setOnAction(actionEvent -> { 
-				SequentialTransition sequentialTransition = 
-						this.transitionByFading(this.notificationArea);
-				sequentialTransition.play();
+		b2.setOnAction(actionEvent -> {
+				cycleToNextNotificationMessage();
 			});
 
 		Button bExit = createToolbarButton(
@@ -250,8 +256,7 @@ public class MainController {
 		Text text = new Text();
 		text.wrappingWidthProperty().bind(
 				this.scene.widthProperty().subtract(A_LITTLE_BIT_EXTRA));
-		text.textProperty().bind(
-				this.movieQuoteCycler.currentMovieQuoteProperty());
+		text.textProperty().bind(this.notificationAreaTextString);
 		text.minHeight(TICKER_HEIGHT);
 		text.maxHeight(TICKER_HEIGHT);
 		
@@ -259,6 +264,13 @@ public class MainController {
 		return text;
 	}
 
+	public synchronized void cycleToNextNotificationMessage() {
+		logger.info("cycleToNextNotificationMessage() | INVOKED");
+		SequentialTransition sequentialTransition = 
+				this.transitionByFading(this.notificationArea);
+		sequentialTransition.play();
+	}
+	
 	private SequentialTransition transitionByFading(Node node) {
 		FadeTransition fadeOut = 
 				new FadeTransition(Duration.millis(3000), node);
@@ -418,6 +430,40 @@ public class MainController {
 
 		Node notificationArea = createNotificationArea();
 		borderPane.setBottom(notificationArea);
+
+		ScheduledService<Void> autoCycler =
+				new ScheduledService<Void>() {
+			@Override
+			protected Task<Void> createTask() {
+				Task<Void> task = new Task<Void>() {
+					@Override
+					protected Void call() throws Exception {
+						Platform.runLater(
+							new Runnable() {
+								@Override
+								public void run() {
+									try {
+										logger.info("cycling...");
+										cycleToNextNotificationMessage();
+									} catch (RuntimeException re) {
+										logger.error("Exception in call()", re);
+									} finally {}
+								}
+							});
+						return null;
+					}
+				};
+				return task;
+			}
+		};
+		autoCycler.setDelay(new Duration(20000));
+		autoCycler.setPeriod(new Duration(20000));
+		
+		this.notificationAreaTextString.addListener(
+				(observable, oldValue, newValue) -> {
+			logger.info("Current movie quote has changed from [" + oldValue +
+					"] to [" + newValue + "]");
+		});
 		
 		// Play with some effects and stuff
 		//setSillyProperties(borderPane.getCenter());
@@ -435,6 +481,29 @@ public class MainController {
 		});
 		primaryStage.setTitle(APPLICATION_TITLE);
 		primaryStage.setScene(scene);
+
+		primaryStage.setOnShown(
+			new EventHandler<WindowEvent>() {
+				public void handle(final WindowEvent event) {
+					logger.info("setOnShown()");
+					autoCycler.start();
+				}
+			});
+		primaryStage.setOnHiding(
+			new EventHandler<WindowEvent>() {
+				public void handle(final WindowEvent event) {
+					logger.info("setOnHiding()");
+					autoCycler.cancel();
+				}
+			});
+		primaryStage.setOnCloseRequest(
+			new EventHandler<WindowEvent>() {
+				public void handle(final WindowEvent event) {
+					logger.info("setOnCloseRequest()");
+					autoCycler.cancel();
+				}
+			});
+		
 		//primaryStage.show();
 		
 		return scene;
