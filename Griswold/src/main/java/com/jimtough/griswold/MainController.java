@@ -2,11 +2,13 @@ package com.jimtough.griswold;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.jimtough.griswold.beans.AppAlphaStatus;
 import com.jimtough.griswold.beans.Person;
 
 import javafx.animation.FadeTransition;
@@ -91,9 +93,11 @@ public class MainController {
 	private Scene scene = null;
 	private BorderPane borderPane = null;
 	private MenuBar menuBar = null;
+	private VBox toolbar = null;
 	private Node notificationArea = null;
 
 	private ObservableList<Person> observablePersonList;
+	private ObservableList<AppAlphaStatus> observableAppAlphaStatusList;
 	
 	/**
 	 * Constructor
@@ -147,6 +151,23 @@ public class MainController {
 		observablePersonList.setAll(samplePersonList);
 		
 		return observablePersonList;
+	}
+	
+	ObservableList<AppAlphaStatus> createObservableAppAlphaStatusList() {
+		observableAppAlphaStatusList = FXCollections.observableArrayList();
+		
+		List<AppAlphaStatus> sampleAppAlphaStatusList = new ArrayList<AppAlphaStatus>();
+		for (int i=0; i<100; i++) {
+			AppAlphaStatus aas = new AppAlphaStatus("svr-" + i + ".jimtough.com");
+			aas.setLastUpdated(new Date());
+			aas.setStatusString("Coolio");
+			sampleAppAlphaStatusList.add(aas);
+		}
+		
+		observableAppAlphaStatusList.clear();
+		observableAppAlphaStatusList.setAll(sampleAppAlphaStatusList);
+		
+		return observableAppAlphaStatusList;
 	}
 	
 	MenuBar createMenuBar(final NavigationController navController) {
@@ -263,6 +284,7 @@ public class MainController {
 		vBox.getChildren().add(b2);
 		vBox.getChildren().add(bExit);
 
+		this.toolbar = vBox;
 		return vBox;
 	}
 
@@ -288,7 +310,9 @@ public class MainController {
 		hbox.getChildren().addAll(icon, textFlow);
 
 		hbox.prefWidthProperty().bind(
-				this.scene.widthProperty().subtract(A_LITTLE_BIT_EXTRA));
+				this.scene.widthProperty()
+				.subtract(this.toolbar.widthProperty())
+				.subtract(A_LITTLE_BIT_EXTRA));
 		
 		this.notificationArea = hbox;
 		return hbox;
@@ -396,6 +420,59 @@ public class MainController {
 		
 		return tv;
 	}
+
+	TableView<AppAlphaStatus> createAppAlphaStatusTableView(
+			final ObservableList<AppAlphaStatus> observableAppAlphaStatusList) {
+		TableView<AppAlphaStatus> tv = new TableView<AppAlphaStatus>();
+		tv.prefHeightProperty().bind(
+				this.scene.heightProperty()
+				.subtract(this.menuBar.heightProperty())
+				.subtract(TICKER_HEIGHT)
+				.subtract(A_LITTLE_BIT_EXTRA));
+		
+		tv.setItems(observableAppAlphaStatusList);
+		
+		tv.setOnMouseClicked(event -> {
+			if (event.getButton().equals(MouseButton.PRIMARY)) {
+				if (event.getClickCount() > 1) {
+					logger.info("Mouse click count: " + event.getClickCount());
+					AppAlphaStatus status =
+							tv.getSelectionModel().getSelectedItem();
+					// TODO Do something with the selected item
+					logger.info("Double-clicked on: " + status);
+					//PersonDetailsController pdc = 
+					//		new PersonDetailsController(navController);
+					//pdc.createPersonDetailsModalDialogScene(primaryStage, selectedPerson);
+				}
+			}
+		});
+		
+		TableColumn<AppAlphaStatus, String> hostnameCol = new TableColumn<>("Host");
+		hostnameCol.setEditable(false);
+		hostnameCol.setCellValueFactory(new PropertyValueFactory<AppAlphaStatus,String>("hostname"));
+		
+		TableColumn<AppAlphaStatus, String> statusStringCol = new TableColumn<>("Status");
+		statusStringCol.setEditable(false);
+		statusStringCol.setCellValueFactory(new PropertyValueFactory<AppAlphaStatus,String>("statusString"));
+		
+		List<TableColumn<AppAlphaStatus,String>> tableColumnList = new ArrayList<>();
+		tableColumnList.add(hostnameCol);
+		tableColumnList.add(statusStringCol);
+		
+		tv.getColumns().setAll(tableColumnList);
+		
+		// selection listening
+		tv.getSelectionModel().selectedItemProperty().addListener(
+				(ObservableValue<? extends AppAlphaStatus> observable, AppAlphaStatus oldValue, AppAlphaStatus newValue) -> {
+			if (observable != null && observable.getValue() != null) {
+				logger.info("New item selected: " +
+						" | old: " + oldValue +
+						" | new: " + newValue);
+			}
+		});
+		
+		return tv;
+	}
 	
 	HBox createHBox() {
 		HBox hbox = new HBox(5);         // pixels space between child nodes
@@ -453,9 +530,13 @@ public class MainController {
 		//HBox hbox = createHBox();
 		//borderPane.setCenter(hbox);
 		
-		ObservableList<Person> opl = createObservablePersonList();
-		
-		TableView<Person> tv = createTableView(opl);
+
+		// TODO Add controls that allow me to swap the content in the center of the panel
+		//ObservableList<Person> opl = createObservablePersonList();
+		//TableView<Person> tv = createTableView(opl);
+		//borderPane.setCenter(tv);
+		ObservableList<AppAlphaStatus> ol = createObservableAppAlphaStatusList();
+		TableView<AppAlphaStatus> tv = createAppAlphaStatusTableView(ol);
 		borderPane.setCenter(tv);
 
 		Node notificationArea = createNotificationArea();
