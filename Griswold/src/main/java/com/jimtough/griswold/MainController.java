@@ -35,6 +35,8 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.effect.Bloom;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
@@ -52,6 +54,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
@@ -77,7 +80,7 @@ public class MainController {
 	
 	private static final String APPLICATION_TITLE = "Griswold";
 	private static final int TICKER_HEIGHT = 30;
-	private static final int A_LITTLE_BIT_EXTRA = 20;
+	private static final int A_LITTLE_BIT_EXTRA = 25;
 	
 	private final Stage primaryStage;
 	private final NavigationController navController;
@@ -226,6 +229,17 @@ public class MainController {
 		icon.setFill(Color.GREEN);
 		icon.setContent(iconSVGString);
 		b.setGraphic(icon);
+		
+		b.setOnMouseEntered(mouseEvent -> {
+			Bloom bloom = new Bloom();
+			bloom.setThreshold(0.3);
+			((Button)mouseEvent.getSource()).setEffect(bloom);
+		});
+		b.setOnMouseExited(mouseEvent -> {
+			((Button)mouseEvent.getSource()).setEffect(null);
+		});
+		
+		
 		return b;
 	}
 	
@@ -253,15 +267,31 @@ public class MainController {
 	}
 
 	Node createNotificationArea() {
-		Text text = new Text();
-		text.wrappingWidthProperty().bind(
-				this.scene.widthProperty().subtract(A_LITTLE_BIT_EXTRA));
-		text.textProperty().bind(this.notificationAreaTextString);
-		text.minHeight(TICKER_HEIGHT);
-		text.maxHeight(TICKER_HEIGHT);
+		HBox hbox = new HBox(5);
 		
-		this.notificationArea = text;
-		return text;
+		SVGPath icon = new SVGPath();
+		icon.setContent(SVG_INFO);
+		
+		DropShadow dropShadow = new DropShadow();
+		dropShadow.setRadius(5.0);
+		dropShadow.setOffsetX(3.0);
+		dropShadow.setOffsetY(3.0);
+		dropShadow.setColor(Color.color(0.4, 0.5, 0.5));		
+		icon.setEffect(dropShadow);
+		icon.setFill(Color.BLUE);
+		icon.setOpacity(1.0);
+		
+		Text text = new Text();
+		text.textProperty().bind(this.notificationAreaTextString);
+		TextFlow textFlow = new TextFlow(text);
+		
+		hbox.getChildren().addAll(icon, textFlow);
+
+		hbox.prefWidthProperty().bind(
+				this.scene.widthProperty().subtract(A_LITTLE_BIT_EXTRA));
+		
+		this.notificationArea = hbox;
+		return hbox;
 	}
 
 	public synchronized void cycleToNextNotificationMessage() {
