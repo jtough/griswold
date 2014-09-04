@@ -21,7 +21,6 @@ import javafx.collections.ObservableList;
 import javafx.concurrent.ScheduledService;
 import javafx.concurrent.Task;
 import javafx.event.EventHandler;
-import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -47,13 +46,11 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Border;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
@@ -81,20 +78,22 @@ public class MainController {
 	private static final String SVG_DOUBLE_QUOTE = "M14.505,5.873c-3.937,2.52-5.904,5.556-5.904,9.108c0,1.104,0.192,1.656,0.576,1.656l0.396-0.107c0.312-0.12,0.563-0.18,0.756-0.18c1.128,0,2.07,0.411,2.826,1.229c0.756,0.82,1.134,1.832,1.134,3.037c0,1.157-0.408,2.14-1.224,2.947c-0.816,0.807-1.801,1.211-2.952,1.211c-1.608,0-2.935-0.661-3.979-1.984c-1.044-1.321-1.565-2.98-1.565-4.977c0-2.259,0.443-4.327,1.332-6.203c0.888-1.875,2.243-3.57,4.067-5.085c1.824-1.514,2.988-2.272,3.492-2.272c0.336,0,0.612,0.162,0.828,0.486c0.216,0.324,0.324,0.606,0.324,0.846L14.505,5.873zM27.465,5.873c-3.937,2.52-5.904,5.556-5.904,9.108c0,1.104,0.192,1.656,0.576,1.656l0.396-0.107c0.312-0.12,0.563-0.18,0.756-0.18c1.104,0,2.04,0.411,2.808,1.229c0.769,0.82,1.152,1.832,1.152,3.037c0,1.157-0.408,2.14-1.224,2.947c-0.816,0.807-1.801,1.211-2.952,1.211c-1.608,0-2.935-0.661-3.979-1.984c-1.044-1.321-1.565-2.98-1.565-4.977c0-2.284,0.449-4.369,1.35-6.256c0.9-1.887,2.256-3.577,4.068-5.067c1.812-1.49,2.97-2.236,3.474-2.236c0.336,0,0.612,0.162,0.828,0.486c0.216,0.324,0.324,0.606,0.324,0.846L27.465,5.873z";
 	
 	private static final String APPLICATION_TITLE = "Griswold";
-	private static final int TICKER_HEIGHT = 30;
-	private static final int A_LITTLE_BIT_EXTRA = 25;
+	private static final int NOTIFICATION_AREA_HEIGHT = 50;
+	
+	private static final int NOTIFICATION_AUTOCYCLE_MILLISECONDS = 20000;
 	
 	private final Stage primaryStage;
 	private final NavigationController navController;
 	private final MovieQuoteCycler movieQuoteCycler;
 	private final ReadOnlyStringWrapper notificationAreaTextString;
 	
-	private Group rootNode = null;
 	private Scene scene = null;
-	private BorderPane borderPane = null;
+	private Group rootNode = null;
+	private VBox sceneFrame = null;
+	private HBox frameMiddleRegion = null;
 	private MenuBar menuBar = null;
 	private VBox toolbar = null;
-	private Node notificationArea = null;
+	private HBox notificationArea = null;
 
 	private ObservableList<Person> observablePersonList;
 	private ObservableList<AppAlphaStatus> observableAppAlphaStatusList;
@@ -131,11 +130,6 @@ public class MainController {
 		this.scene = new Scene(rootNode, 300, 250);
 		this.scene.setFill(Color.LIGHTGREY);
 		return this.scene;
-	}
-
-	BorderPane createBorderPane() {
-		this.borderPane = new BorderPane();
-		return this.borderPane;
 	}
 	
 	ObservableList<Person> createObservablePersonList() {
@@ -228,8 +222,9 @@ public class MainController {
 
 		alarmMenu.getItems().add(contingencyPlans);
 
-		menuBar.getMenus().addAll(fileMenu, cameraMenu, alarmMenu);
-		return menuBar;
+		this.menuBar.getMenus().addAll(fileMenu, cameraMenu, alarmMenu);
+		this.menuBar.prefWidthProperty().bind(this.primaryStage.widthProperty());
+		return this.menuBar;
 	}
 
 	private Button createToolbarButton(
@@ -264,7 +259,7 @@ public class MainController {
 		return b;
 	}
 	
-	Node createToolbarContent(final NavigationController navController) {
+	VBox createToolbarContent(final NavigationController navController) {
 		VBox vBox = new VBox();
 
 		Button b1 = createToolbarButton(
@@ -285,11 +280,22 @@ public class MainController {
 		vBox.getChildren().add(bExit);
 
 		this.toolbar = vBox;
+		toolbar.heightProperty().addListener(
+				(observable, oldValue, newValue) -> {
+					logger.trace("toolbar height has changed: " +
+							" | old: " + oldValue +
+							" | new: " + newValue);
+				});
+		
 		return vBox;
 	}
 
-	Node createNotificationArea() {
-		HBox hbox = new HBox(5);
+	HBox createNotificationArea() {
+		this.notificationArea = new HBox(5);
+		this.notificationArea.prefWidthProperty().bind(this.primaryStage.widthProperty());
+		this.notificationArea.prefHeight(NOTIFICATION_AREA_HEIGHT);
+		this.notificationArea.setMinHeight(NOTIFICATION_AREA_HEIGHT);
+		this.notificationArea.setMaxHeight(NOTIFICATION_AREA_HEIGHT);
 		
 		SVGPath icon = new SVGPath();
 		icon.setContent(SVG_INFO);
@@ -307,17 +313,35 @@ public class MainController {
 		text.textProperty().bind(this.notificationAreaTextString);
 		TextFlow textFlow = new TextFlow(text);
 		
-		hbox.getChildren().addAll(icon, textFlow);
-
-		hbox.prefWidthProperty().bind(
-				this.scene.widthProperty()
-				.subtract(this.toolbar.widthProperty())
-				.subtract(A_LITTLE_BIT_EXTRA));
+		this.notificationArea.getChildren().addAll(icon, textFlow);
 		
-		this.notificationArea = hbox;
-		return hbox;
+		return this.notificationArea;
 	}
 
+	HBox createFrameMiddleRegion() {
+		this.frameMiddleRegion = new HBox();
+		this.frameMiddleRegion.setBackground(new Background(new BackgroundFill(Color.CYAN, null, null)));
+		
+		this.frameMiddleRegion.prefWidthProperty().bind(
+				this.sceneFrame.widthProperty());
+		this.frameMiddleRegion.prefHeightProperty().bind(
+				this.sceneFrame.heightProperty()
+					.subtract(this.menuBar.heightProperty())
+					.subtract(this.notificationArea.heightProperty()));
+		this.frameMiddleRegion.maxHeightProperty().bind(
+				this.sceneFrame.heightProperty()
+					.subtract(this.menuBar.heightProperty())
+					.subtract(this.notificationArea.heightProperty()));
+		this.frameMiddleRegion.heightProperty().addListener(
+				(observable, oldValue, newValue) -> {
+					logger.info("frameMiddleRegion height has changed: " +
+							" | old: " + oldValue +
+							" | new: " + newValue);
+				});
+		
+		return this.frameMiddleRegion;
+	}
+	
 	public synchronized void cycleToNextNotificationMessage() {
 		logger.info("cycleToNextNotificationMessage() | INVOKED");
 		SequentialTransition sequentialTransition = 
@@ -343,16 +367,6 @@ public class MainController {
 				new SequentialTransition(fadeOut, fadeIn);
 		return seqTransition;
 	}
-	
-	Rectangle createPlaceholderCenterRectangle() {
-		Rectangle rect = new Rectangle();
-		rect.widthProperty().bind(this.scene.widthProperty());
-		rect.heightProperty().bind(
-				this.scene.heightProperty()
-					.subtract(this.menuBar.getHeight())
-					.subtract(TICKER_HEIGHT));
-		return rect;
-	}
 
 	TableView<Person> createTableView(
 			final ObservableList<Person> observablePersonList) {
@@ -363,8 +377,7 @@ public class MainController {
 		tv.prefHeightProperty().bind(
 				this.scene.heightProperty()
 				.subtract(this.menuBar.heightProperty())
-				.subtract(TICKER_HEIGHT)
-				.subtract(A_LITTLE_BIT_EXTRA));
+				.subtract(NOTIFICATION_AREA_HEIGHT));
 		
 		//final ObservableList<Person> teamMembers = FXCollections.observableArrayList();
 		tv.setItems(observablePersonList);
@@ -424,11 +437,6 @@ public class MainController {
 	TableView<AppAlphaStatus> createAppAlphaStatusTableView(
 			final ObservableList<AppAlphaStatus> observableAppAlphaStatusList) {
 		TableView<AppAlphaStatus> tv = new TableView<AppAlphaStatus>();
-		tv.prefHeightProperty().bind(
-				this.scene.heightProperty()
-				.subtract(this.menuBar.heightProperty())
-				.subtract(TICKER_HEIGHT)
-				.subtract(A_LITTLE_BIT_EXTRA));
 		
 		tv.setItems(observableAppAlphaStatusList);
 		
@@ -474,30 +482,6 @@ public class MainController {
 		return tv;
 	}
 	
-	HBox createHBox() {
-		HBox hbox = new HBox(5);         // pixels space between child nodes
-		hbox.setPadding(new Insets(1));  // padding between child nodes only
-		Rectangle r1 = new Rectangle(10, 10);
-		Rectangle r2 = new Rectangle(20, 20);
-		Rectangle r3 = new Rectangle(5, 20);
-		Rectangle r4 = new Rectangle(20, 5);
-		
-		HBox.setMargin(r1, new Insets(2,2,2,2));
-		
-		hbox.getChildren().addAll(r1, r2, r3, r4);
-		
-		hbox.prefHeightProperty().bind(
-				this.scene.heightProperty()
-				.subtract(this.menuBar.heightProperty())
-				.subtract(TICKER_HEIGHT)
-				.subtract(A_LITTLE_BIT_EXTRA));
-		
-		BackgroundFill bgFill = new BackgroundFill(Color.CORNFLOWERBLUE, null, null);
-		Background bg = new Background(bgFill);
-		hbox.setBackground(bg);
-		return hbox;
-	}
-	
 	private void setSillyProperties(Node node) {
 		node.setOpacity(0.5);
 		node.setEffect(new GaussianBlur(5.5));
@@ -509,38 +493,9 @@ public class MainController {
 		
 		createRootNode();
 		createScene(this.rootNode);
-		createBorderPane();
-		
-		// Add BorderPane as the first child of the control Group for Scene
-		//BorderPane borderPane = new BorderPane();
-		this.rootNode.getChildren().add(borderPane);
-
-		// Create a MenuBar and place it in the top border of the BorderPane
-		//createAndAddMenu(primaryStage, borderPane, navController);
 		createMenuBar(this.navController);
-		this.menuBar.prefWidthProperty().bind(this.primaryStage.widthProperty());
-		this.borderPane.setTop(this.menuBar);
 
-		Node leftContent = createToolbarContent(navController);
-		this.borderPane.setLeft(leftContent);
-		
-		// Create a dummy node to display in the center of the BorderPane
-		//Rectangle rect = createPlaceholderCenterRectangle();
-		//this.borderPane.setCenter(rect);
-		//HBox hbox = createHBox();
-		//borderPane.setCenter(hbox);
-		
-
-		// TODO Add controls that allow me to swap the content in the center of the panel
-		//ObservableList<Person> opl = createObservablePersonList();
-		//TableView<Person> tv = createTableView(opl);
-		//borderPane.setCenter(tv);
-		ObservableList<AppAlphaStatus> ol = createObservableAppAlphaStatusList();
-		TableView<AppAlphaStatus> tv = createAppAlphaStatusTableView(ol);
-		borderPane.setCenter(tv);
-
-		Node notificationArea = createNotificationArea();
-		borderPane.setBottom(notificationArea);
+		createNotificationArea();
 
 		ScheduledService<Void> autoCycler =
 				new ScheduledService<Void>() {
@@ -567,14 +522,43 @@ public class MainController {
 				return task;
 			}
 		};
-		autoCycler.setDelay(new Duration(20000));
-		autoCycler.setPeriod(new Duration(20000));
-		
+		autoCycler.setDelay(new Duration(NOTIFICATION_AUTOCYCLE_MILLISECONDS));
+		autoCycler.setPeriod(new Duration(NOTIFICATION_AUTOCYCLE_MILLISECONDS));
+
 		this.notificationAreaTextString.addListener(
 				(observable, oldValue, newValue) -> {
 			logger.info("Current movie quote has changed from [" + oldValue +
 					"] to [" + newValue + "]");
 		});
+		this.notificationArea.heightProperty().addListener(
+				(observable, oldValue, newValue) -> {
+					logger.info("notificationArea height has changed: " +
+							" | old: " + oldValue +
+							" | new: " + newValue);
+				});
+		
+		createToolbarContent(navController);
+		
+		this.sceneFrame = new VBox();
+		this.sceneFrame.setBackground(new Background(new BackgroundFill(Color.ORANGE, null, null)));
+		this.rootNode.getChildren().add(sceneFrame);
+		sceneFrame.prefHeightProperty().bind(scene.heightProperty());
+		sceneFrame.prefWidthProperty().bind(scene.widthProperty());
+		
+		sceneFrame.getChildren().add(this.menuBar);
+		createFrameMiddleRegion();
+		this.frameMiddleRegion.getChildren().add(this.toolbar);
+
+		// TODO Add controls that allow me to swap the content in the center of the panel
+		//ObservableList<Person> opl = createObservablePersonList();
+		//TableView<Person> tv = createTableView(opl);
+		ObservableList<AppAlphaStatus> ol = createObservableAppAlphaStatusList();
+		TableView<AppAlphaStatus> tv = createAppAlphaStatusTableView(ol);
+		tv.prefWidthProperty().bind(frameMiddleRegion.widthProperty());
+		this.frameMiddleRegion.getChildren().add(tv);
+		
+		sceneFrame.getChildren().add(this.frameMiddleRegion);
+		sceneFrame.getChildren().add(this.notificationArea);
 		
 		// Play with some effects and stuff
 		//setSillyProperties(borderPane.getCenter());
@@ -585,6 +569,7 @@ public class MainController {
 		//primaryStage.setWidth(800);
 		//primaryStage.setHeight(600);
 		primaryStage.setOnShown((WindowEvent we) -> {
+			logger.info("primaryStage.setOnShown() | INVOKED");
 			//logger.info("hbox width  " + hbox.getBoundsInParent().getWidth());
 			//logger.info("hbox height " + hbox.getBoundsInParent().getHeight());
 			//logger.info("rect width  " + rect.getBoundsInParent().getWidth());
