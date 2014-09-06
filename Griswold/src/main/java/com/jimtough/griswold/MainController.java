@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
+import org.joda.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +62,6 @@ import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import javafx.util.Callback;
-import javafx.util.Duration;
 
 /**
  * Controller for the primary Stage (the main application window).
@@ -389,7 +389,7 @@ public class MainController {
 	
 	private SequentialTransition transitionByFading(Node node) {
 		FadeTransition fadeOut = 
-				new FadeTransition(Duration.millis(3000), node);
+				new FadeTransition(javafx.util.Duration.millis(3000), node);
 		fadeOut.setFromValue(1.0);
 		fadeOut.setToValue(0.0);
 		
@@ -397,7 +397,7 @@ public class MainController {
 				actionEvent -> this.movieQuoteCycler.cycleToNextQuote());
 		
 		FadeTransition fadeIn = 
-				new FadeTransition(Duration.millis(1000), node);
+				new FadeTransition(javafx.util.Duration.millis(1000), node);
 		fadeIn.setFromValue(0.0);
 		fadeIn.setToValue(1.0);
 		
@@ -545,6 +545,7 @@ public class MainController {
 		// Long form where I write the Callback implementation myself
 		hostnameCol.setCellValueFactory(new Callback<CellDataFeatures<AppBetaStatus, String>, ObservableValue<String>>() {
 			public ObservableValue<String> call(CellDataFeatures<AppBetaStatus, String> p) {
+				logger.info("called for hostname - " + p.getValue().hostnameProperty().get());
 				return p.getValue().hostnameProperty();
 			}
 		});
@@ -555,7 +556,15 @@ public class MainController {
 
 		TableColumn<AppBetaStatus, Duration> uptimeCol = new TableColumn<>("Uptime");
 		uptimeCol.setEditable(false);
-		uptimeCol.setCellValueFactory(new PropertyValueFactory<AppBetaStatus,Duration>("uptime"));
+		// Convenience form (will display the 'toString()' value of the object in the table cell)
+		//uptimeCol.setCellValueFactory(new PropertyValueFactory<AppBetaStatus,Duration>("uptime"));
+		// Long form where I write the Callback implementation myself
+		uptimeCol.setCellValueFactory(new Callback<CellDataFeatures<AppBetaStatus, Duration>, ObservableValue<Duration>>() {
+			public ObservableValue<Duration> call(CellDataFeatures<AppBetaStatus, Duration> p) {
+				logger.info("called for Duration");
+				return p.getValue().uptimeProperty();
+			}
+		});
 		
 		List<TableColumn<AppBetaStatus,? extends Object>> tableColumnList = new ArrayList<>();
 		tableColumnList.add(hostnameCol);
@@ -617,8 +626,8 @@ public class MainController {
 				return task;
 			}
 		};
-		autoCycler.setDelay(new Duration(NOTIFICATION_AUTOCYCLE_MILLISECONDS));
-		autoCycler.setPeriod(new Duration(NOTIFICATION_AUTOCYCLE_MILLISECONDS));
+		autoCycler.setDelay(new javafx.util.Duration(NOTIFICATION_AUTOCYCLE_MILLISECONDS));
+		autoCycler.setPeriod(new javafx.util.Duration(NOTIFICATION_AUTOCYCLE_MILLISECONDS));
 		
 		this.primaryStage.setOnShown(
 			new EventHandler<WindowEvent>() {
