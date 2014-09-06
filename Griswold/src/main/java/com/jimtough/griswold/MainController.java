@@ -4,11 +4,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.jimtough.griswold.beans.AppAlphaStatus;
+import com.jimtough.griswold.beans.AppBetaStatus;
+import com.jimtough.griswold.beans.DurationProperty;
 import com.jimtough.griswold.beans.Person;
 
 import javafx.animation.FadeTransition;
@@ -32,6 +35,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.RadioMenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableView;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
@@ -56,6 +60,7 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import javafx.util.Callback;
 import javafx.util.Duration;
 
 /**
@@ -97,6 +102,7 @@ public class MainController {
 
 	private ObservableList<Person> observablePersonList;
 	private ObservableList<AppAlphaStatus> observableAppAlphaStatusList;
+	private ObservableList<AppBetaStatus> observableAppBetaStatusList;
 	
 	/**
 	 * Constructor
@@ -162,6 +168,26 @@ public class MainController {
 		observableAppAlphaStatusList.setAll(sampleAppAlphaStatusList);
 		
 		return observableAppAlphaStatusList;
+	}
+	
+	ObservableList<AppBetaStatus> createObservableAppBetaStatusList() {
+		observableAppBetaStatusList = FXCollections.observableArrayList();
+		
+		List<AppBetaStatus> sampleStatusList = new ArrayList<AppBetaStatus>();
+		Random r = new Random();
+		for (int i=0; i<200; i++) {
+			int randomDurationMilliseconds = r.nextInt(432000000); // 5 days max
+			AppBetaStatus abs = new AppBetaStatus("host-" + i + ".jimtough.com");
+			abs.setLastUpdated(new Date());
+			abs.setStatusString("stucco");
+			abs.setUptime(new org.joda.time.Duration(randomDurationMilliseconds));
+			sampleStatusList.add(abs);
+		}
+		
+		observableAppBetaStatusList.clear();
+		observableAppBetaStatusList.setAll(sampleStatusList);
+		
+		return observableAppBetaStatusList;
 	}
 	
 	MenuBar createMenuBar(final NavigationController navController) {
@@ -314,6 +340,18 @@ public class MainController {
 		TextFlow textFlow = new TextFlow(text);
 		
 		this.notificationArea.getChildren().addAll(icon, textFlow);
+		
+		this.notificationAreaTextString.addListener(
+				(observable, oldValue, newValue) -> {
+			logger.info("Current movie quote has changed from [" + oldValue +
+					"] to [" + newValue + "]");
+		});
+		//this.notificationArea.heightProperty().addListener(
+		//		(observable, oldValue, newValue) -> {
+		//	logger.info("notificationArea height has changed: " +
+		//			" | old: " + oldValue +
+		//			" | new: " + newValue);
+		//});
 		
 		return this.notificationArea;
 	}
@@ -481,22 +519,79 @@ public class MainController {
 		
 		return tv;
 	}
+
+	TableView<AppBetaStatus> createAppBetaStatusTableView(
+			final ObservableList<AppBetaStatus> observableList) {
+		TableView<AppBetaStatus> tv = new TableView<AppBetaStatus>();
+		
+		tv.setItems(observableList);
+		
+		tv.setOnMouseClicked(event -> {
+			if (event.getButton().equals(MouseButton.PRIMARY)) {
+				if (event.getClickCount() > 1) {
+					logger.info("Mouse click count: " + event.getClickCount());
+					AppBetaStatus status =
+							tv.getSelectionModel().getSelectedItem();
+					// TODO Do something with the selected item
+					logger.info("Double-clicked on: " + status);
+				}
+			}
+		});
+		
+		TableColumn<AppBetaStatus, String> hostnameCol = new TableColumn<>("Host");
+		hostnameCol.setEditable(false);
+		// Convenience form (preferred way for simple string-based properties)
+		//hostnameCol.setCellValueFactory(new PropertyValueFactory<AppBetaStatus,String>("hostname"));
+		// Long form where I write the Callback implementation myself
+		hostnameCol.setCellValueFactory(new Callback<CellDataFeatures<AppBetaStatus, String>, ObservableValue<String>>() {
+			public ObservableValue<String> call(CellDataFeatures<AppBetaStatus, String> p) {
+				return p.getValue().hostnameProperty();
+			}
+		});
+		
+		TableColumn<AppBetaStatus, String> statusStringCol = new TableColumn<>("Status");
+		statusStringCol.setEditable(false);
+		statusStringCol.setCellValueFactory(new PropertyValueFactory<AppBetaStatus,String>("statusString"));
+
+		TableColumn<AppBetaStatus, Duration> uptimeCol = new TableColumn<>("Uptime");
+		uptimeCol.setEditable(false);
+		uptimeCol.setCellValueFactory(new PropertyValueFactory<AppBetaStatus,Duration>("uptime"));
+		
+		List<TableColumn<AppBetaStatus,? extends Object>> tableColumnList = new ArrayList<>();
+		tableColumnList.add(hostnameCol);
+		tableColumnList.add(statusStringCol);
+		tableColumnList.add(uptimeCol);
+		
+		tv.getColumns().setAll(tableColumnList);
+		
+		// selection listening
+		tv.getSelectionModel().selectedItemProperty().addListener(
+				(ObservableValue<? extends AppBetaStatus> observable, AppBetaStatus oldValue, AppBetaStatus newValue) -> {
+			if (observable != null && observable.getValue() != null) {
+				logger.info("New item selected: " +
+						" | old: " + oldValue +
+						" | new: " + newValue);
+			}
+		});
+		
+		return tv;
+	}
 	
 	private void setSillyProperties(Node node) {
 		node.setOpacity(0.5);
 		node.setEffect(new GaussianBlur(5.5));
 	}
 	
-	public Scene createMainStageScene() {
-		primaryStage.setWidth(800);
-		primaryStage.setHeight(600);
-		
-		createRootNode();
-		createScene(this.rootNode);
-		createMenuBar(this.navController);
-
-		createNotificationArea();
-
+	void createNotificationAreaAutoCycler() {
+		if (this.primaryStage == null) {
+			throw new IllegalStateException("primaryStage is null");
+		}
+		if (this.notificationArea == null) {
+			throw new IllegalStateException("notificationArea is null");
+		}
+		if (this.movieQuoteCycler == null) {
+			throw new IllegalStateException("movieQuoteCycler is null");
+		}
 		ScheduledService<Void> autoCycler =
 				new ScheduledService<Void>() {
 			@Override
@@ -524,18 +619,40 @@ public class MainController {
 		};
 		autoCycler.setDelay(new Duration(NOTIFICATION_AUTOCYCLE_MILLISECONDS));
 		autoCycler.setPeriod(new Duration(NOTIFICATION_AUTOCYCLE_MILLISECONDS));
+		
+		this.primaryStage.setOnShown(
+			new EventHandler<WindowEvent>() {
+				public void handle(final WindowEvent event) {
+					logger.info("setOnShown()");
+					autoCycler.start();
+				}
+			});
+		this.primaryStage.setOnHiding(
+			new EventHandler<WindowEvent>() {
+				public void handle(final WindowEvent event) {
+					logger.info("setOnHiding()");
+					autoCycler.cancel();
+				}
+			});
+		this.primaryStage.setOnCloseRequest(
+			new EventHandler<WindowEvent>() {
+				public void handle(final WindowEvent event) {
+					logger.info("setOnCloseRequest()");
+					autoCycler.cancel();
+				}
+			});
+	}
+	
+	public Scene createMainStageScene() {
+		primaryStage.setWidth(800);
+		primaryStage.setHeight(600);
+		
+		createRootNode();
+		createScene(this.rootNode);
+		createMenuBar(this.navController);
 
-		this.notificationAreaTextString.addListener(
-				(observable, oldValue, newValue) -> {
-			logger.info("Current movie quote has changed from [" + oldValue +
-					"] to [" + newValue + "]");
-		});
-		this.notificationArea.heightProperty().addListener(
-				(observable, oldValue, newValue) -> {
-					logger.info("notificationArea height has changed: " +
-							" | old: " + oldValue +
-							" | new: " + newValue);
-				});
+		createNotificationArea();
+		createNotificationAreaAutoCycler();
 		
 		createToolbarContent(navController);
 		
@@ -552,9 +669,15 @@ public class MainController {
 		// TODO Add controls that allow me to swap the content in the center of the panel
 		//ObservableList<Person> opl = createObservablePersonList();
 		//TableView<Person> tv = createTableView(opl);
-		ObservableList<AppAlphaStatus> ol = createObservableAppAlphaStatusList();
-		TableView<AppAlphaStatus> tv = createAppAlphaStatusTableView(ol);
+		//------
+		//ObservableList<AppAlphaStatus> ol = createObservableAppAlphaStatusList();
+		//TableView<AppAlphaStatus> tv = createAppAlphaStatusTableView(ol);
+		//tv.prefWidthProperty().bind(frameMiddleRegion.widthProperty());
+		//------
+		ObservableList<AppBetaStatus> ol = createObservableAppBetaStatusList();
+		TableView<AppBetaStatus> tv = createAppBetaStatusTableView(ol);
 		tv.prefWidthProperty().bind(frameMiddleRegion.widthProperty());
+		//------
 		this.frameMiddleRegion.getChildren().add(tv);
 		
 		sceneFrame.getChildren().add(this.frameMiddleRegion);
@@ -577,28 +700,6 @@ public class MainController {
 		});
 		primaryStage.setTitle(APPLICATION_TITLE);
 		primaryStage.setScene(scene);
-
-		primaryStage.setOnShown(
-			new EventHandler<WindowEvent>() {
-				public void handle(final WindowEvent event) {
-					logger.info("setOnShown()");
-					autoCycler.start();
-				}
-			});
-		primaryStage.setOnHiding(
-			new EventHandler<WindowEvent>() {
-				public void handle(final WindowEvent event) {
-					logger.info("setOnHiding()");
-					autoCycler.cancel();
-				}
-			});
-		primaryStage.setOnCloseRequest(
-			new EventHandler<WindowEvent>() {
-				public void handle(final WindowEvent event) {
-					logger.info("setOnCloseRequest()");
-					autoCycler.cancel();
-				}
-			});
 		
 		//primaryStage.show();
 		

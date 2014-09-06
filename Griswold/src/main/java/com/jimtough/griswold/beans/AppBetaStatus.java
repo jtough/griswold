@@ -1,18 +1,37 @@
 package com.jimtough.griswold.beans;
 
+import org.joda.time.Duration;
+
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 
-public class AppAlphaStatus extends GenericAppStatus {
+public class AppBetaStatus extends GenericAppStatus {
 
-	private ReadOnlyStringWrapper statusString;
+	private final DurationProperty uptime;
+	private final ReadOnlyStringWrapper statusString;
 
 	/**
 	 * Constructor
 	 * @param hostname Non-null, non-empty string
 	 */
-	public AppAlphaStatus(String hostname) {
+	public AppBetaStatus(final String hostname) {
 		super(hostname);
+		this.uptime = new DurationProperty(this, null);
+		this.statusString = new ReadOnlyStringWrapper("");
+	}
+
+	// uptime accessors
+	
+	public final void setUptime(Duration value) {
+		uptimeProperty().set(value);
+	}
+
+	public final Duration getUptime() {
+		return uptimeProperty().get();
+	}
+
+	public DurationProperty uptimeProperty() {
+		return uptime;
 	}
 
 	// statusString accessors
@@ -24,9 +43,6 @@ public class AppAlphaStatus extends GenericAppStatus {
 	
 	@Override
 	public ReadOnlyStringProperty statusStringProperty() {
-		if (statusString == null) {
-			statusString = new ReadOnlyStringWrapper();
-		}
 		return statusString.getReadOnlyProperty();
 	}
 	
@@ -47,7 +63,7 @@ public class AppAlphaStatus extends GenericAppStatus {
 			return false;
 		}
 		// ASSUMPTION: hostname is unique among all instances of this class
-		AppAlphaStatus that = (AppAlphaStatus) other;
+		AppBetaStatus that = (AppBetaStatus) other;
 		return this.getHostname().equals(that.getHostname());
 	}
 	

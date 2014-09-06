@@ -34,7 +34,7 @@ public abstract class GenericAppStatus {
 
 	// hostname accessors
 	
-	public final void setHostname(String value) {
+	private final void setHostname(String value) {
 		hostnameProperty().set(value);
 	}
 
