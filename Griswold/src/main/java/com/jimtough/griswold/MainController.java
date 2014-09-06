@@ -14,6 +14,9 @@ import com.jimtough.griswold.beans.AppBetaStatus;
 import com.jimtough.griswold.beans.Person;
 
 import javafx.animation.FadeTransition;
+import javafx.animation.ParallelTransition;
+import javafx.animation.PauseTransition;
+import javafx.animation.ScaleTransition;
 import javafx.animation.SequentialTransition;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -39,7 +42,6 @@ import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.effect.Bloom;
-import javafx.scene.effect.DisplacementMap;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.input.KeyCode;
@@ -59,6 +61,7 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import javafx.util.Duration;
 
 /**
  * Controller for the primary Stage (the main application window).
@@ -264,6 +267,96 @@ public class MainController {
 		return this.menuBar;
 	}
 
+	private void transitionOldToNewContentA(
+			final HBox container,
+			final Node newContent) {
+		FadeTransition fadeOut = 
+				new FadeTransition(javafx.util.Duration.millis(200), container);
+		fadeOut.setFromValue(1.0);
+		fadeOut.setToValue(0.0);
+		
+		fadeOut.setOnFinished(actionEvent -> {
+			container.getChildren().clear();
+			container.getChildren().add(newContent);
+		});
+		
+		FadeTransition fadeIn = 
+				new FadeTransition(javafx.util.Duration.millis(200), container);
+		fadeIn.setFromValue(0.0);
+		fadeIn.setToValue(1.0);
+		
+		SequentialTransition seqTransition = 
+				new SequentialTransition(fadeOut, fadeIn);
+		seqTransition.play();
+	}
+
+	private void transitionOldToNewContentB(
+			final HBox container,
+			final Node newContent) {
+		final Duration durationOut = Duration.millis(500);
+		final Duration durationIn = Duration.millis(500);
+		final Node oldContent;
+		ParallelTransition ptOut = null;
+		ParallelTransition ptIn = null;
+		
+		if (!container.getChildren().isEmpty()) {
+			oldContent = container.getChildren().get(0);
+			FadeTransition fadeOutT = new FadeTransition(durationOut);
+			fadeOutT.setFromValue(1.0);
+			fadeOutT.setToValue(0.1);
+			ScaleTransition scaleDownT = new ScaleTransition(durationOut);
+			scaleDownT.setFromX(1.0);
+			scaleDownT.setFromY(1.0);
+			scaleDownT.setToX(0.1);
+			scaleDownT.setToY(0.1);
+			ptOut = new ParallelTransition(oldContent, fadeOutT, scaleDownT);
+			ptOut.setOnFinished(actionEvent -> {
+				logger.trace("ptOut finished");
+			});
+		} else {
+			oldContent = null;
+			ptOut = null;
+		}
+
+		PauseTransition pauseT = new PauseTransition(Duration.millis(1));
+		pauseT.setOnFinished(actionEvent -> {
+			container.getChildren().clear();
+			if (oldContent != null) {
+				// Restore old Node to its regular property values
+				oldContent.scaleXProperty().set(1.0);
+				oldContent.scaleYProperty().set(1.0);
+				oldContent.opacityProperty().set(1.0);
+			}
+			// Start new Node at its 'start of animation' property values
+			newContent.scaleXProperty().set(0.1);
+			newContent.scaleYProperty().set(0.1);
+			newContent.opacityProperty().set(0.1);
+			container.getChildren().add(newContent);
+		});
+		
+		FadeTransition fadeInT = new FadeTransition(durationIn);
+		fadeInT.setFromValue(0.1);
+		fadeInT.setToValue(1.0);
+		ScaleTransition scaleUpT = new ScaleTransition(durationOut);
+		scaleUpT.setFromX(0.1);
+		scaleUpT.setFromY(0.1);
+		scaleUpT.setToX(1.0);
+		scaleUpT.setToY(1.0);
+		ptIn = new ParallelTransition(newContent, fadeInT, scaleUpT);
+		ptIn.setOnFinished(actionEvent -> {
+			logger.trace("ptIn finished");
+		});
+		
+		//SequentialTransition seqTransition = 
+		//		new SequentialTransition(ptOut, pauseT, ptIn);
+		SequentialTransition seqTransition = new SequentialTransition();
+		if (ptOut != null) {
+			seqTransition.getChildren().add(ptOut);
+		}
+		seqTransition.getChildren().addAll(pauseT, ptIn);
+		seqTransition.play();
+	}
+	
 	private Button createToolbarButton(
 			String iconSVGString,
 			String tooltipText) {
@@ -310,29 +403,46 @@ public class MainController {
 		Button bTools = createToolbarButton(
 				SVG_TOOLS, "Tools");
 		bTools.setOnAction(actionEvent -> {
-			this.middleRightContentArea.getChildren().clear();
-			this.middleRightContentArea.getChildren().add(this.tvPerson);
+			try {
+				this.toolbar.disableProperty().set(true);
+				this.transitionOldToNewContentB(this.middleRightContentArea, this.tvPerson);
+			} finally {
+				this.toolbar.disableProperty().set(false);
+			}
 		});
 
 		Button bMonitorAppAlpha = createToolbarButton(
 				SVG_CLOCK_FORWARD, "Monitor App Alpha");
 		bMonitorAppAlpha.setOnAction(actionEvent -> {
-			this.middleRightContentArea.getChildren().clear();
-			this.middleRightContentArea.getChildren().add(this.tvAlpha);
+			try {
+				this.toolbar.disableProperty().set(true);
+				this.transitionOldToNewContentB(this.middleRightContentArea, this.tvAlpha);
+			} finally {
+				this.toolbar.disableProperty().set(false);
+			}
 		});
 
 		Button bMonitorAppBeta = createToolbarButton(
 				SVG_LIGHTBULB_B, "Monitor App Beta");
 		bMonitorAppBeta.setOnAction(actionEvent -> {
-			this.middleRightContentArea.getChildren().clear();
-			this.middleRightContentArea.getChildren().add(this.tvBeta);
+			try {
+				this.toolbar.disableProperty().set(true);
+				this.transitionOldToNewContentB(this.middleRightContentArea, this.tvBeta);
+			} finally {
+				this.toolbar.disableProperty().set(false);
+			}
 		});
 
 		Button bCycleQuote = createToolbarButton(
 				SVG_DOUBLE_QUOTE, "Cycle to next movie quote");
 		bCycleQuote.setOnAction(actionEvent -> {
+			try {
+				this.toolbar.disableProperty().set(true);
 				cycleToNextNotificationMessage();
-			});
+			} finally {
+				this.toolbar.disableProperty().set(false);
+			}
+		});
 
 		Button bExit = createToolbarButton(
 				SVG_POWER, "Close application");
@@ -691,13 +801,9 @@ public class MainController {
 		this.frameMiddleRegion.getChildren().add(this.toolbar);
 		this.frameMiddleRegion.getChildren().add(this.middleRightContentArea);
 		
-		// TODO Add controls that allow me to swap the content in the center of the panel
 		tvPerson.prefWidthProperty().bind(frameMiddleRegion.widthProperty());
 		tvAlpha.prefWidthProperty().bind(frameMiddleRegion.widthProperty());
 		tvBeta.prefWidthProperty().bind(frameMiddleRegion.widthProperty());
-		//------
-		//this.frameMiddleRegion.getChildren().add(tv);
-		//this.middleRightContentArea.getChildren().add(tvPerson);
 		
 		sceneFrame.getChildren().add(this.frameMiddleRegion);
 		sceneFrame.getChildren().add(this.notificationArea);
