@@ -6,13 +6,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
-import org.joda.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.jimtough.griswold.beans.AppAlphaStatus;
 import com.jimtough.griswold.beans.AppBetaStatus;
-import com.jimtough.griswold.beans.DurationProperty;
 import com.jimtough.griswold.beans.Person;
 
 import javafx.animation.FadeTransition;
@@ -36,7 +34,6 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.RadioMenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableView;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
@@ -61,7 +58,6 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
-import javafx.util.Callback;
 
 /**
  * Controller for the primary Stage (the main application window).
@@ -85,7 +81,7 @@ public class MainController {
 	private static final String APPLICATION_TITLE = "Griswold";
 	private static final int NOTIFICATION_AREA_HEIGHT = 50;
 	
-	private static final int NOTIFICATION_AUTOCYCLE_MILLISECONDS = 20000;
+	private static final int NOTIFICATION_AUTOCYCLE_MILLISECONDS = 15000;
 	
 	private final Stage primaryStage;
 	private final NavigationController navController;
@@ -99,6 +95,7 @@ public class MainController {
 	private MenuBar menuBar = null;
 	private VBox toolbar = null;
 	private HBox notificationArea = null;
+	private ScheduledService<Void> autoCycler = null;
 
 	private ObservableList<Person> observablePersonList;
 	private ObservableList<AppAlphaStatus> observableAppAlphaStatusList;
@@ -176,11 +173,16 @@ public class MainController {
 		List<AppBetaStatus> sampleStatusList = new ArrayList<AppBetaStatus>();
 		Random r = new Random();
 		for (int i=0; i<200; i++) {
-			int randomDurationMilliseconds = r.nextInt(432000000); // 5 days max
+			//int exactlyFiveDays =  432000000;
+			//int oneHourAndOneMinuteAndOneMillisecond = 3660001;
+			long FIVE_HUNDRED_DAYS = 43200000000L; // 500 days max
+			long randomDurationMilliseconds = Math.abs(r.nextLong()) % FIVE_HUNDRED_DAYS;
+			//int randomDurationMilliseconds = r.nextInt(432000000); // 5 days max
 			AppBetaStatus abs = new AppBetaStatus("host-" + i + ".jimtough.com");
 			abs.setLastUpdated(new Date());
 			abs.setStatusString("stucco");
 			abs.setUptime(new org.joda.time.Duration(randomDurationMilliseconds));
+			//abs.setUptime(new org.joda.time.Duration(exactlyFiveDays + oneHourAndOneMinuteAndOneMillisecond));
 			sampleStatusList.add(abs);
 		}
 		
@@ -306,12 +308,12 @@ public class MainController {
 		vBox.getChildren().add(bExit);
 
 		this.toolbar = vBox;
-		toolbar.heightProperty().addListener(
-				(observable, oldValue, newValue) -> {
-					logger.trace("toolbar height has changed: " +
-							" | old: " + oldValue +
-							" | new: " + newValue);
-				});
+		//toolbar.heightProperty().addListener(
+		//		(observable, oldValue, newValue) -> {
+		//			logger.info("toolbar height has changed: " +
+		//					" | old: " + oldValue +
+		//					" | new: " + newValue);
+		//		});
 		
 		return vBox;
 	}
@@ -370,12 +372,12 @@ public class MainController {
 				this.sceneFrame.heightProperty()
 					.subtract(this.menuBar.heightProperty())
 					.subtract(this.notificationArea.heightProperty()));
-		this.frameMiddleRegion.heightProperty().addListener(
-				(observable, oldValue, newValue) -> {
-					logger.info("frameMiddleRegion height has changed: " +
-							" | old: " + oldValue +
-							" | new: " + newValue);
-				});
+		//this.frameMiddleRegion.heightProperty().addListener(
+		//		(observable, oldValue, newValue) -> {
+		//			logger.info("frameMiddleRegion height has changed: " +
+		//					" | old: " + oldValue +
+		//					" | new: " + newValue);
+		//		});
 		
 		return this.frameMiddleRegion;
 	}
@@ -486,9 +488,6 @@ public class MainController {
 							tv.getSelectionModel().getSelectedItem();
 					// TODO Do something with the selected item
 					logger.info("Double-clicked on: " + status);
-					//PersonDetailsController pdc = 
-					//		new PersonDetailsController(navController);
-					//pdc.createPersonDetailsModalDialogScene(primaryStage, selectedPerson);
 				}
 			}
 		});
@@ -541,30 +540,22 @@ public class MainController {
 		TableColumn<AppBetaStatus, String> hostnameCol = new TableColumn<>("Host");
 		hostnameCol.setEditable(false);
 		// Convenience form (preferred way for simple string-based properties)
-		//hostnameCol.setCellValueFactory(new PropertyValueFactory<AppBetaStatus,String>("hostname"));
+		hostnameCol.setCellValueFactory(new PropertyValueFactory<AppBetaStatus,String>("hostname"));
 		// Long form where I write the Callback implementation myself
-		hostnameCol.setCellValueFactory(new Callback<CellDataFeatures<AppBetaStatus, String>, ObservableValue<String>>() {
-			public ObservableValue<String> call(CellDataFeatures<AppBetaStatus, String> p) {
-				logger.info("called for hostname - " + p.getValue().hostnameProperty().get());
-				return p.getValue().hostnameProperty();
-			}
-		});
+		//hostnameCol.setCellValueFactory(new Callback<CellDataFeatures<AppBetaStatus, String>, ObservableValue<String>>() {
+		//	public ObservableValue<String> call(CellDataFeatures<AppBetaStatus, String> p) {
+		//		logger.info("called for hostname - " + p.getValue().hostnameProperty().get());
+		//		return p.getValue().hostnameProperty();
+		//	}
+		//});
 		
 		TableColumn<AppBetaStatus, String> statusStringCol = new TableColumn<>("Status");
 		statusStringCol.setEditable(false);
 		statusStringCol.setCellValueFactory(new PropertyValueFactory<AppBetaStatus,String>("statusString"));
 
-		TableColumn<AppBetaStatus, Duration> uptimeCol = new TableColumn<>("Uptime");
+		TableColumn<AppBetaStatus, String> uptimeCol = new TableColumn<>("Uptime");
 		uptimeCol.setEditable(false);
-		// Convenience form (will display the 'toString()' value of the object in the table cell)
-		//uptimeCol.setCellValueFactory(new PropertyValueFactory<AppBetaStatus,Duration>("uptime"));
-		// Long form where I write the Callback implementation myself
-		uptimeCol.setCellValueFactory(new Callback<CellDataFeatures<AppBetaStatus, Duration>, ObservableValue<Duration>>() {
-			public ObservableValue<Duration> call(CellDataFeatures<AppBetaStatus, Duration> p) {
-				logger.info("called for Duration");
-				return p.getValue().uptimeProperty();
-			}
-		});
+		uptimeCol.setCellValueFactory(new PropertyValueFactory<AppBetaStatus,String>("uptimeString"));
 		
 		List<TableColumn<AppBetaStatus,? extends Object>> tableColumnList = new ArrayList<>();
 		tableColumnList.add(hostnameCol);
@@ -601,60 +592,35 @@ public class MainController {
 		if (this.movieQuoteCycler == null) {
 			throw new IllegalStateException("movieQuoteCycler is null");
 		}
-		ScheduledService<Void> autoCycler =
-				new ScheduledService<Void>() {
+		//ScheduledService<Void> autoCycler =
+		this.autoCycler = new ScheduledService<Void>() {
 			@Override
 			protected Task<Void> createTask() {
 				Task<Void> task = new Task<Void>() {
 					@Override
 					protected Void call() throws Exception {
-						Platform.runLater(
-							new Runnable() {
-								@Override
-								public void run() {
-									try {
-										logger.info("cycling...");
-										cycleToNextNotificationMessage();
-									} catch (RuntimeException re) {
-										logger.error("Exception in call()", re);
-									} finally {}
-								}
-							});
+						Platform.runLater(() -> {
+							try {
+								logger.info("cycling...");
+								cycleToNextNotificationMessage();
+							} catch (RuntimeException re) {
+								logger.error("Exception in call()", re);
+							} finally {}
+						});
 						return null;
 					}
 				};
 				return task;
 			}
 		};
-		autoCycler.setDelay(new javafx.util.Duration(NOTIFICATION_AUTOCYCLE_MILLISECONDS));
-		autoCycler.setPeriod(new javafx.util.Duration(NOTIFICATION_AUTOCYCLE_MILLISECONDS));
-		
-		this.primaryStage.setOnShown(
-			new EventHandler<WindowEvent>() {
-				public void handle(final WindowEvent event) {
-					logger.info("setOnShown()");
-					autoCycler.start();
-				}
-			});
-		this.primaryStage.setOnHiding(
-			new EventHandler<WindowEvent>() {
-				public void handle(final WindowEvent event) {
-					logger.info("setOnHiding()");
-					autoCycler.cancel();
-				}
-			});
-		this.primaryStage.setOnCloseRequest(
-			new EventHandler<WindowEvent>() {
-				public void handle(final WindowEvent event) {
-					logger.info("setOnCloseRequest()");
-					autoCycler.cancel();
-				}
-			});
+		this.autoCycler.setDelay(new javafx.util.Duration(NOTIFICATION_AUTOCYCLE_MILLISECONDS));
+		this.autoCycler.setPeriod(new javafx.util.Duration(NOTIFICATION_AUTOCYCLE_MILLISECONDS));
 	}
 	
 	public Scene createMainStageScene() {
 		primaryStage.setWidth(800);
 		primaryStage.setHeight(600);
+		primaryStage.setTitle(APPLICATION_TITLE);
 		
 		createRootNode();
 		createScene(this.rootNode);
@@ -697,20 +663,31 @@ public class MainController {
 		//setSillyProperties(hbox);
 		//setSillyProperties(rootNode);
 		
-		
-		//primaryStage.setWidth(800);
-		//primaryStage.setHeight(600);
-		primaryStage.setOnShown((WindowEvent we) -> {
-			logger.info("primaryStage.setOnShown() | INVOKED");
-			//logger.info("hbox width  " + hbox.getBoundsInParent().getWidth());
-			//logger.info("hbox height " + hbox.getBoundsInParent().getHeight());
-			//logger.info("rect width  " + rect.getBoundsInParent().getWidth());
-			//logger.info("rect height " + rect.getBoundsInParent().getHeight());
-		});
-		primaryStage.setTitle(APPLICATION_TITLE);
 		primaryStage.setScene(scene);
 		
-		//primaryStage.show();
+		logger.info("Adding handlers to primaryStage to start/stop autoCycler");
+		
+		this.primaryStage.setOnShown(
+			new EventHandler<WindowEvent>() {
+				public void handle(final WindowEvent event) {
+					logger.info("setOnShown() - starting autoCycler");
+					autoCycler.start();
+				}
+			});
+		this.primaryStage.setOnHiding(
+			new EventHandler<WindowEvent>() {
+				public void handle(final WindowEvent event) {
+					logger.info("setOnHiding() - canceling autoCycler");
+					autoCycler.cancel();
+				}
+			});
+		this.primaryStage.setOnCloseRequest(
+			new EventHandler<WindowEvent>() {
+				public void handle(final WindowEvent event) {
+					logger.info("setOnCloseRequest() - canceling autoCycler");
+					autoCycler.cancel();
+				}
+			});
 		
 		return scene;
 	}
