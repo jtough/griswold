@@ -24,10 +24,12 @@ public class NavigationController {
 	}
 	
 	public synchronized AuthenticatedUser getAuthUser() {
+		logger.info("getAuthUser() | INVOKED");
 		return authUser;
 	}
 
 	private synchronized void setAuthUser(AuthenticatedUser authUser) {
+		logger.info("setAuthUser() | INVOKED");
 		this.authUser = authUser;
 	}
 	

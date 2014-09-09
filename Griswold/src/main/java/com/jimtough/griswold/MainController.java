@@ -9,9 +9,13 @@ import java.util.Random;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.jimtough.griswold.auth.AuthenticatedUser;
 import com.jimtough.griswold.beans.AppAlphaStatus;
 import com.jimtough.griswold.beans.AppBetaStatus;
 import com.jimtough.griswold.beans.Person;
+import com.jimtough.griswold.notification.AuthenticatedUserInfoMessageSource;
+import com.jimtough.griswold.notification.CurrentTimeMessageSource;
+import com.jimtough.griswold.notification.MovieQuotesMessageSource;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
@@ -133,11 +137,16 @@ public class MainController {
 		}
 		this.primaryStage = primaryStage;
 		this.navController = navController;
+		
 		this.notificationAreaTextString = new ReadOnlyStringWrapper();
 		//this.movieQuoteCycler = new MovieQuoteCycler(
 		//		this.notificationAreaTextString);
 		this.notificationAreaUpdater = new NotificationAreaUpdater(
 				this.notificationAreaTextString);
+		this.notificationAreaUpdater.addMessageSource(
+				new CurrentTimeMessageSource());
+		this.notificationAreaUpdater.addMessageSource(
+				new MovieQuotesMessageSource());
 	}
 
 	Group createRootNode() {
@@ -495,7 +504,7 @@ public class MainController {
 		
 		this.notificationAreaTextString.addListener(
 				(observable, oldValue, newValue) -> {
-			logger.info("Current movie quote has changed from [" + oldValue +
+			logger.debug("Notification area text has changed from [" + oldValue +
 					"] to [" + newValue + "]");
 		});
 		//this.notificationArea.heightProperty().addListener(
@@ -828,6 +837,14 @@ public class MainController {
 				public void handle(final WindowEvent event) {
 					logger.info("setOnShown() - starting autoCycler");
 					autoCycler.start();
+					AuthenticatedUser authUser = navController.getAuthUser();
+					if (authUser != null) {
+						logger.info("setOnShown() - adding auth user message source to notification updater");
+						notificationAreaUpdater.addMessageSource(
+								new AuthenticatedUserInfoMessageSource(authUser));
+					} else {
+						logger.warn("setOnShown() - authUser is null");
+					}
 				}
 			});
 		this.primaryStage.setOnHiding(

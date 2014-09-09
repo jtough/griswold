@@ -13,6 +13,11 @@ import org.slf4j.LoggerFactory;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 
+/**
+ * @deprecated TO BE DELETED... Replaced with MovieQuotesMessageSource
+ * @author JTOUGH
+ */
+@Deprecated
 public class MovieQuoteCycler {
 
 	private static final Logger logger =
