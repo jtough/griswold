@@ -3,6 +3,11 @@ package com.jimtough.griswold;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.jimtough.griswold.auth.AuthenticatedUser;
+import com.jimtough.griswold.auth.AuthenticationFailureException;
+import com.jimtough.griswold.auth.Credentials;
+import com.jimtough.griswold.auth.UserAuthenticator;
+import com.jimtough.griswold.auth.UserAuthenticatorStub;
 import com.jimtough.griswold.beans.User;
 
 import javafx.application.Platform;
@@ -38,26 +43,45 @@ public class AuthenticationController {
 	private static final Logger logger =
 			LoggerFactory.getLogger(AuthenticationController.class);
 	
-	private final static String MY_PASS = "xxx";
+	//private final static String MY_PASS = "xxx";
+	private final static String TEST_PASSWORD = UserAuthenticatorStub.STUB_PASSWORD;
 	private final static BooleanProperty GRANTED_ACCESS = new SimpleBooleanProperty(false);
 	private final static int MAX_ATTEMPTS = 3;
 	private final IntegerProperty ATTEMPTS = new SimpleIntegerProperty(0);
-	
+	private AuthenticatedUser authUser = null;
+
 	private final Stage stage;
 	private final NavigationController navController;
+	private final UserAuthenticator userAuthenticator;
 	
 	public AuthenticationController(
-			NavigationController navController) {
+			NavigationController navController,
+			UserAuthenticator userAuthenticator) {
 		if (navController == null) {
 			throw new IllegalArgumentException("navController cannot be null");
 		}
+		if (userAuthenticator == null) {
+			throw new IllegalArgumentException("userAuthenticator cannot be null");
+		}
 		this.navController = navController;
+		this.userAuthenticator = userAuthenticator;
 		this.stage = new Stage();
 	}
+	
+	public synchronized AuthenticatedUser getAuthUser() {
+		return authUser;
+	}
 
-	public void onSuccessfulAuthentication() {
+	private synchronized void setAuthUser(AuthenticatedUser authUser) {
+		this.authUser = authUser;
+	}
+
+	public void onSuccessfulAuthentication(final AuthenticatedUser authUser) {
 		logger.info("onSuccessfulAuthentication() | INVOKED");
-		this.navController.authenticationSuccessful();
+		if (authUser == null) {
+			throw new IllegalArgumentException("authUser cannot be null");
+		}
+		this.navController.authenticationSuccessful(authUser);
 		this.stage.close();
 	}
 	
@@ -132,7 +156,7 @@ public class AuthenticationController {
 		passwordField.prefWidthProperty().bind(stage.widthProperty().subtract(55));
 		Tooltip passwordTT = new Tooltip(
 				"Heyo! Press Escape key to quit. " + 
-				"Fake password is '" + MY_PASS + "'.");
+				"Fake password is '" + TEST_PASSWORD + "'.");
 		SVGPath passwordTtIcon = new SVGPath();
 		passwordTtIcon.setFill(foregroundColor);
 		passwordTtIcon.setContent("M16,1.466C7.973,1.466,1.466,7.973,1.466,16c0,8.027,6.507,14.534,14.534,14.534c8.027,0,14.534-6.507,14.534-14.534C30.534,7.973,24.027,1.466,16,1.466z M14.757,8h2.42v2.574h-2.42V8z M18.762,23.622H16.1c-1.034,0-1.475-0.44-1.475-1.496v-6.865c0-0.33-0.176-0.484-0.484-0.484h-0.88V12.4h2.662c1.035,0,1.474,0.462,1.474,1.496v6.887c0,0.309,0.176,0.484,0.484,0.484h0.88V23.622z");
@@ -168,20 +192,34 @@ public class AuthenticationController {
 
 		// user hits the enter key
 		passwordField.setOnAction(actionEvent -> {
-			if (GRANTED_ACCESS.get()) {
-				logger.info("User is granted access.");
-				this.onSuccessfulAuthentication();
-				//Platform.exit();
-			} else {
-				deniedIcon.setVisible(true); 
+			//if (GRANTED_ACCESS.get()) {
+			//	logger.info("User is granted access.");
+			//	this.onSuccessfulAuthentication();
+			//	//Platform.exit();
+			//} else {
+			//	deniedIcon.setVisible(true); 
+			//}
+			Credentials credentials = new Credentials(
+					user.userNameProperty().get(), 
+					user.passwordProperty().get());
+			setAuthUser(null);
+			try {
+				AuthenticatedUser authUser = 
+						userAuthenticator.authenticate(credentials);
+				setAuthUser(authUser);
+			} catch (AuthenticationFailureException e) {
+				logger.info("Authentication failed", e);
+				deniedIcon.setVisible(true);
+				ATTEMPTS.set(ATTEMPTS.add(1).get());
+				logger.info("Attempts: " + ATTEMPTS.get());
 			}
-			ATTEMPTS.set(ATTEMPTS.add(1).get());
-			logger.info("Attempts: " + ATTEMPTS.get());
+			logger.info("User is granted access.");
+			this.onSuccessfulAuthentication(getAuthUser());
 		});
 
 		// listener when the user types into the password field
 		passwordField.textProperty().addListener((obs, ov, nv) -> {
-			boolean granted = passwordField.getText().equals(MY_PASS);
+			boolean granted = passwordField.getText().equals(TEST_PASSWORD);
 			GRANTED_ACCESS.set(granted);
 			if (granted) {
 				deniedIcon.setVisible(false);
@@ -191,7 +229,7 @@ public class AuthenticationController {
 		// listener on number of attempts
 		ATTEMPTS.addListener((obs, ov, nv) -> {
 			if (MAX_ATTEMPTS == nv.intValue()) {
-				// failed attemps
+				// failed attempts
 				logger.info("User is denied access.");
 				Platform.exit();
 			}

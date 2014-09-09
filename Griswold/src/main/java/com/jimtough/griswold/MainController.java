@@ -93,7 +93,8 @@ public class MainController {
 	
 	private final Stage primaryStage;
 	private final NavigationController navController;
-	private final MovieQuoteCycler movieQuoteCycler;
+	//private final MovieQuoteCycler movieQuoteCycler;
+	private final NotificationAreaUpdater notificationAreaUpdater;
 	private final ReadOnlyStringWrapper notificationAreaTextString;
 	
 	private Scene scene = null;
@@ -133,7 +134,9 @@ public class MainController {
 		this.primaryStage = primaryStage;
 		this.navController = navController;
 		this.notificationAreaTextString = new ReadOnlyStringWrapper();
-		this.movieQuoteCycler = new MovieQuoteCycler(
+		//this.movieQuoteCycler = new MovieQuoteCycler(
+		//		this.notificationAreaTextString);
+		this.notificationAreaUpdater = new NotificationAreaUpdater(
 				this.notificationAreaTextString);
 	}
 
@@ -548,7 +551,8 @@ public class MainController {
 		fadeOut.setToValue(0.0);
 		
 		fadeOut.setOnFinished(
-				actionEvent -> this.movieQuoteCycler.cycleToNextQuote());
+				//actionEvent -> this.movieQuoteCycler.cycleToNextQuote());
+				actionEvent -> this.notificationAreaUpdater.rotateText());
 		
 		FadeTransition fadeIn = 
 				new FadeTransition(javafx.util.Duration.millis(1000), node);
@@ -741,10 +745,12 @@ public class MainController {
 		if (this.notificationArea == null) {
 			throw new IllegalStateException("notificationArea is null");
 		}
-		if (this.movieQuoteCycler == null) {
-			throw new IllegalStateException("movieQuoteCycler is null");
+		//if (this.movieQuoteCycler == null) {
+		//	throw new IllegalStateException("movieQuoteCycler is null");
+		//}
+		if (this.notificationAreaUpdater == null) {
+			throw new IllegalStateException("notificationAreaUpdater is null");
 		}
-		//ScheduledService<Void> autoCycler =
 		this.autoCycler = new ScheduledService<Void>() {
 			@Override
 			protected Task<Void> createTask() {

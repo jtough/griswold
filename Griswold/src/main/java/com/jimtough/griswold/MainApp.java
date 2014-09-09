@@ -3,8 +3,9 @@ package com.jimtough.griswold;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.jimtough.griswold.auth.UserAuthenticatorStub;
+
 import javafx.application.Application;
-import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 /**
@@ -53,9 +54,13 @@ public class MainApp extends Application {
 		primaryStage.hide();
 		
 		navController = new NavigationController(primaryStage);
-		mainController = new MainController(primaryStage, navController);
+		mainController = new MainController(
+				primaryStage, 
+				navController);
 		mainController.createMainStageScene();
-		authController = new AuthenticationController(navController);
+		authController = new AuthenticationController(
+				navController, 
+				new UserAuthenticatorStub());
 		authController.createAuthenticationDialogScene(primaryStage);
 		
 //		// Now I create a second window. If you close the 'primary' stage

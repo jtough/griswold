@@ -16,6 +16,10 @@ import org.slf4j.LoggerFactory;
 
 import com.jimtough.griswold.beans.Person;
 
+/**
+ * @deprecated Either do something with this dummy class, or just delete it!
+ */
+@Deprecated
 public class PersonDetailsController {
 
 	private static final Logger logger =
@@ -35,7 +39,6 @@ public class PersonDetailsController {
 
 	public void onClose() {
 		logger.info("onClose() | INVOKED");
-		this.navController.authenticationSuccessful();
 		this.stage.close();
 	}
 
