@@ -8,6 +8,8 @@ public class NotificationMessage {
 
 	private final String messageText;
 	private final NotificationImportance importance;
+	private final NotificationCategory category;
+	private final NotificationIcon icon;
 
 	/**
 	 * Constructor
@@ -16,7 +18,9 @@ public class NotificationMessage {
 	 */
 	public NotificationMessage(
 			final String messageText,
-			final NotificationImportance importance) {
+			final NotificationImportance importance,
+			final NotificationCategory category,
+			final NotificationIcon icon) {
 		if (messageText == null) {
 			throw new IllegalArgumentException("messageText cannot be null");
 		}
@@ -26,8 +30,16 @@ public class NotificationMessage {
 		if (importance == null) {
 			throw new IllegalArgumentException("importance cannot be null");
 		}
+		if (category == null) {
+			throw new IllegalArgumentException("category cannot be null");
+		}
+		if (icon == null) {
+			throw new IllegalArgumentException("icon cannot be null");
+		}
 		this.messageText = messageText;
 		this.importance = importance;
+		this.category = category;
+		this.icon = icon;
 	}
 
 	public String getMessageText() {
@@ -36,6 +48,14 @@ public class NotificationMessage {
 
 	public NotificationImportance getImportance() {
 		return importance;
+	}
+
+	public NotificationCategory getCategory() {
+		return category;
+	}
+
+	public NotificationIcon getIcon() {
+		return icon;
 	}
 	
 }

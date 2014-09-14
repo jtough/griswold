@@ -41,7 +41,11 @@ public class MovieQuotesMessageSource implements NotificationMessageSource {
 		String nextQuote = movieQuoteList.get(currentQuoteIndex);
 		currentQuoteIndex++;
 		logger.debug("Returning next movie quote: " + nextQuote);
-		return new NotificationMessage(nextQuote, NotificationImportance.TRIVIAL);
+		return new NotificationMessage(
+				nextQuote, 
+				NotificationImportance.TRIVIAL,
+				NotificationCategory.INFO_NEUTRAL,
+				NotificationIcon.COOL_STUFF);
 	}
 
 }

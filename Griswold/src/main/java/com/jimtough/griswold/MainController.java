@@ -34,6 +34,8 @@ import javafx.collections.ObservableList;
 import javafx.concurrent.ScheduledService;
 import javafx.concurrent.Task;
 import javafx.event.EventHandler;
+import javafx.geometry.Orientation;
+import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -43,6 +45,7 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.RadioMenuItem;
+import javafx.scene.control.Separator;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -62,8 +65,10 @@ import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
@@ -90,12 +95,12 @@ public class MainController {
 	private static final int NOTIFICATION_AREA_HEIGHT = 50;
 	
 	private static final int NOTIFICATION_AUTOCYCLE_MILLISECONDS = 15000;
-	private static final int APP_BETA_STATUS_REFRESH_MILLISECONDS = 5000;
+	private static final int APP_BETA_STATUS_REFRESH_MILLISECONDS = 3000;
 	
 	private final Stage primaryStage;
 	private final NavigationController navController;
 	//private final MovieQuoteCycler movieQuoteCycler;
-	private final NotificationAreaUpdater notificationAreaUpdater;
+	//private final NotificationAreaUpdater notificationAreaUpdater;
 	private final ReadOnlyStringWrapper notificationAreaTextString;
 	
 	private Scene scene = null;
@@ -106,6 +111,8 @@ public class MainController {
 	private MenuBar menuBar = null;
 	private VBox toolbar = null;
 	private HBox notificationArea = null;
+	private SVGPath notificationAreaIcon = null;
+	private NotificationAreaUpdater notificationAreaUpdater = null;
 	private ScheduledService<Void> autoCycler = null;
 	private AppBetaStatusUpdater appBetaStatusUpdater = null;
 
@@ -121,12 +128,10 @@ public class MainController {
 	 * Constructor
 	 * @param primaryStage Non-null
 	 * @param navController Non-null
-	 * @throws IOException 
 	 */
 	public MainController(
 			Stage primaryStage,
-			NavigationController navController) 
-			throws IOException {
+			NavigationController navController) {
 		if (primaryStage == null) {
 			throw new IllegalArgumentException("primaryStage cannot be null");
 		}
@@ -139,12 +144,12 @@ public class MainController {
 		this.notificationAreaTextString = new ReadOnlyStringWrapper();
 		//this.movieQuoteCycler = new MovieQuoteCycler(
 		//		this.notificationAreaTextString);
-		this.notificationAreaUpdater = new NotificationAreaUpdater(
-				this.notificationAreaTextString);
-		this.notificationAreaUpdater.addMessageSource(
-				new CurrentTimeMessageSource());
-		this.notificationAreaUpdater.addMessageSource(
-				new MovieQuotesMessageSource());
+		//this.notificationAreaUpdater = new NotificationAreaUpdater(
+		//		this.notificationAreaTextString);
+		//this.notificationAreaUpdater.addMessageSource(
+		//		new CurrentTimeMessageSource());
+		//this.notificationAreaUpdater.addMessageSource(
+		//		new MovieQuotesMessageSource());
 	}
 
 	Group createRootNode() {
@@ -475,42 +480,64 @@ public class MainController {
 		return vBox;
 	}
 
-	HBox createNotificationArea() {
-		this.notificationArea = new HBox(5);
+	HBox createNotificationArea() 
+			throws IOException {
+		this.notificationArea = new HBox();
 		this.notificationArea.prefWidthProperty().bind(this.primaryStage.widthProperty());
 		this.notificationArea.prefHeight(NOTIFICATION_AREA_HEIGHT);
 		this.notificationArea.setMinHeight(NOTIFICATION_AREA_HEIGHT);
 		this.notificationArea.setMaxHeight(NOTIFICATION_AREA_HEIGHT);
 		
-		SVGPath icon = new SVGPath();
-		icon.setContent(SVG_INFO);
+		this.notificationAreaIcon = new SVGPath();
+		notificationAreaIcon.setContent(SVG_INFO);
+
+		Rectangle rect = new Rectangle(
+				NOTIFICATION_AREA_HEIGHT, NOTIFICATION_AREA_HEIGHT);
+		rect.setFill(Color.TRANSPARENT);
 		
 		DropShadow dropShadow = new DropShadow();
 		dropShadow.setRadius(5.0);
 		dropShadow.setOffsetX(3.0);
 		dropShadow.setOffsetY(3.0);
 		dropShadow.setColor(Color.color(0.4, 0.5, 0.5));		
-		icon.setEffect(dropShadow);
-		icon.setFill(Color.BLUE);
-		icon.setOpacity(1.0);
+		notificationAreaIcon.setEffect(dropShadow);
+		//notificationAreaIcon.setFill(Color.BLUE);
+		//notificationAreaIcon.visibleProperty().set(false);
+		notificationAreaIcon.setOpacity(1.0);
+		
+		StackPane stackPane = new StackPane(rect, notificationAreaIcon);
+		stackPane.setAlignment(Pos.CENTER);
+
+		Separator separator = new Separator(Orientation.VERTICAL);
 		
 		Text text = new Text();
 		text.textProperty().bind(this.notificationAreaTextString);
 		TextFlow textFlow = new TextFlow(text);
 		
-		this.notificationArea.getChildren().addAll(icon, textFlow);
+		this.notificationArea.getChildren().addAll(
+				stackPane, separator, textFlow);
 		
 		this.notificationAreaTextString.addListener(
 				(observable, oldValue, newValue) -> {
 			logger.debug("Notification area text has changed from [" + oldValue +
 					"] to [" + newValue + "]");
 		});
-		//this.notificationArea.heightProperty().addListener(
-		//		(observable, oldValue, newValue) -> {
-		//	logger.info("notificationArea height has changed: " +
-		//			" | old: " + oldValue +
-		//			" | new: " + newValue);
-		//});
+		this.notificationAreaIcon.pressedProperty().addListener(
+				(observable, oldValue, newValue) -> {
+			logger.info("notificationAreaIcon 'pressed' property has changed: "+
+					" | old: " + oldValue +
+					" | new: " + newValue);
+		});
+	
+		this.notificationAreaUpdater = new NotificationAreaUpdater(
+				this.notificationAreaTextString,
+				this.notificationAreaIcon.contentProperty(),
+				this.notificationAreaIcon.fillProperty(),
+				this.notificationArea.backgroundProperty());
+		this.notificationAreaUpdater.addMessageSource(
+				new CurrentTimeMessageSource());
+		this.notificationAreaUpdater.addMessageSource(
+				new MovieQuotesMessageSource());
 		
 		return this.notificationArea;
 	}
@@ -553,12 +580,11 @@ public class MainController {
 	
 	private SequentialTransition transitionByFading(Node node) {
 		FadeTransition fadeOut = 
-				new FadeTransition(javafx.util.Duration.millis(3000), node);
+				new FadeTransition(javafx.util.Duration.millis(2500), node);
 		fadeOut.setFromValue(1.0);
 		fadeOut.setToValue(0.0);
 		
 		fadeOut.setOnFinished(
-				//actionEvent -> this.movieQuoteCycler.cycleToNextQuote());
 				actionEvent -> this.notificationAreaUpdater.rotateText());
 		
 		FadeTransition fadeIn = 
@@ -802,7 +828,7 @@ public class MainController {
 		this.appBetaStatusUpdater.setPeriod(new javafx.util.Duration(APP_BETA_STATUS_REFRESH_MILLISECONDS));
 	}
 	
-	public Scene createMainStageScene() {
+	public Scene createMainStageScene() throws IOException {
 		primaryStage.setWidth(800);
 		primaryStage.setHeight(600);
 		primaryStage.setTitle(APPLICATION_TITLE);
@@ -825,7 +851,7 @@ public class MainController {
 		this.toolbar.setBackground(new Background(new BackgroundFill(Color.CHARTREUSE, null, null)));
 		
 		this.sceneFrame = new VBox();
-		this.sceneFrame.setBackground(new Background(new BackgroundFill(Color.ORANGE, null, null)));
+		//this.sceneFrame.setBackground(new Background(new BackgroundFill(Color.ORANGE, null, null)));
 		this.rootNode.getChildren().add(sceneFrame);
 		sceneFrame.prefHeightProperty().bind(scene.heightProperty());
 		sceneFrame.prefWidthProperty().bind(scene.widthProperty());

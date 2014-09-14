@@ -7,6 +7,7 @@ package com.jimtough.griswold.notification;
 public enum NotificationImportance {
 	TRIVIAL,
 	LOW,
-	MEDIUM,
-	HIGH
+	NORMAL,
+	HIGH,
+	CRITICAL
 }
