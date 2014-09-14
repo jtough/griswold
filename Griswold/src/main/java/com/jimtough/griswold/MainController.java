@@ -19,6 +19,7 @@ import com.jimtough.griswold.beans.Person;
 import com.jimtough.griswold.notification.AuthenticatedUserInfoMessageSource;
 import com.jimtough.griswold.notification.CurrentTimeMessageSource;
 import com.jimtough.griswold.notification.MovieQuotesMessageSource;
+import com.jimtough.griswold.workers.AppBetaStatusUpdater;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
@@ -89,6 +90,7 @@ public class MainController {
 	private static final int NOTIFICATION_AREA_HEIGHT = 50;
 	
 	private static final int NOTIFICATION_AUTOCYCLE_MILLISECONDS = 15000;
+	private static final int APP_BETA_STATUS_REFRESH_MILLISECONDS = 2500;
 	
 	private final Stage primaryStage;
 	private final NavigationController navController;
@@ -105,6 +107,7 @@ public class MainController {
 	private VBox toolbar = null;
 	private HBox notificationArea = null;
 	private ScheduledService<Void> autoCycler = null;
+	private AppBetaStatusUpdater appBetaStatusUpdater = null;
 
 	private TableView<Person> tvPerson = null;
 	private TableView<AppAlphaStatus> tvAlpha = null;
@@ -176,7 +179,7 @@ public class MainController {
 		for (int i=0; i<100; i++) {
 			AppAlphaStatus aas = new AppAlphaStatus("svr-" + i + ".jimtough.com");
 			aas.setLastUpdatedDateTime(DateTime.now());
-			aas.setStatusCode(GenericStatusCode.UNKNOWN);
+			aas.setStatusCode(GenericStatusCode.NORMAL);
 			sampleAppAlphaStatusList.add(aas);
 		}
 		
@@ -199,7 +202,7 @@ public class MainController {
 			//int randomDurationMilliseconds = r.nextInt(432000000); // 5 days max
 			AppBetaStatus abs = new AppBetaStatus("host-" + i + ".jimtough.com");
 			abs.setLastUpdatedDateTime(DateTime.now());
-			abs.setStatusCode(GenericStatusCode.UNKNOWN);
+			abs.setStatusCode(GenericStatusCode.NORMAL);
 			abs.setUptime(new org.joda.time.Duration(randomDurationMilliseconds));
 			//abs.setUptime(new org.joda.time.Duration(exactlyFiveDays + oneHourAndOneMinuteAndOneMillisecond));
 			sampleStatusList.add(abs);
@@ -759,9 +762,6 @@ public class MainController {
 		if (this.notificationArea == null) {
 			throw new IllegalStateException("notificationArea is null");
 		}
-		//if (this.movieQuoteCycler == null) {
-		//	throw new IllegalStateException("movieQuoteCycler is null");
-		//}
 		if (this.notificationAreaUpdater == null) {
 			throw new IllegalStateException("notificationAreaUpdater is null");
 		}
@@ -789,6 +789,19 @@ public class MainController {
 		this.autoCycler.setPeriod(new javafx.util.Duration(NOTIFICATION_AUTOCYCLE_MILLISECONDS));
 	}
 	
+	void createAppBetaStatusUpdater() {
+		if (this.primaryStage == null) {
+			throw new IllegalStateException("primaryStage is null");
+		}
+		if (this.observableAppBetaStatusList == null) {
+			throw new IllegalStateException("observableAppBetaStatusList is null");
+		}
+		this.appBetaStatusUpdater = 
+				new AppBetaStatusUpdater(observableAppBetaStatusList);
+		this.appBetaStatusUpdater.setDelay(new javafx.util.Duration(APP_BETA_STATUS_REFRESH_MILLISECONDS));
+		this.appBetaStatusUpdater.setPeriod(new javafx.util.Duration(APP_BETA_STATUS_REFRESH_MILLISECONDS));
+	}
+	
 	public Scene createMainStageScene() {
 		primaryStage.setWidth(800);
 		primaryStage.setHeight(600);
@@ -803,6 +816,7 @@ public class MainController {
 		tvPerson = createPersonTableView(createObservablePersonList());
 		tvAlpha = createAppAlphaStatusTableView(createObservableAppAlphaStatusList());
 		tvBeta = createAppBetaStatusTableView(createObservableAppBetaStatusList());
+		createAppBetaStatusUpdater();
 
 		createNotificationArea();
 		createNotificationAreaAutoCycler();
@@ -840,8 +854,9 @@ public class MainController {
 		this.primaryStage.setOnShown(
 			new EventHandler<WindowEvent>() {
 				public void handle(final WindowEvent event) {
-					logger.info("setOnShown() - starting autoCycler");
+					logger.info("setOnShown() - starting background services");
 					autoCycler.start();
+					appBetaStatusUpdater.start();
 					AuthenticatedUser authUser = navController.getAuthUser();
 					if (authUser != null) {
 						logger.info("setOnShown() - adding auth user message source to notification updater");
@@ -855,15 +870,17 @@ public class MainController {
 		this.primaryStage.setOnHiding(
 			new EventHandler<WindowEvent>() {
 				public void handle(final WindowEvent event) {
-					logger.info("setOnHiding() - canceling autoCycler");
+					logger.info("setOnHiding() - canceling background services");
 					autoCycler.cancel();
+					appBetaStatusUpdater.cancel();
 				}
 			});
 		this.primaryStage.setOnCloseRequest(
 			new EventHandler<WindowEvent>() {
 				public void handle(final WindowEvent event) {
-					logger.info("setOnCloseRequest() - canceling autoCycler");
+					logger.info("setOnCloseRequest() - canceling background services");
 					autoCycler.cancel();
+					appBetaStatusUpdater.cancel();
 				}
 			});
 		
