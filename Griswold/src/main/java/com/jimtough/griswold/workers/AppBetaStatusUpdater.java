@@ -57,11 +57,11 @@ public class AppBetaStatusUpdater
 	}
 
 	private void randomlyChangeGenericStatusCode(AppBetaStatus abs) {
-		int x = random.nextInt(1000);
+		int x = random.nextInt(10000);
 		GenericStatusCode curStatusCode = abs.getStatusCode();
 		
 		if (curStatusCode.equals(GenericStatusCode.NORMAL)) {
-			// 0.1% chance of being changed to a bad status code
+			// 3 in 10000 chance of being changed to a bad status code
 			if (x == 0) {
 				abs.setStatusCode(GenericStatusCode.OFFLINE);
 			} else if (x == 1) {
@@ -70,8 +70,8 @@ public class AppBetaStatusUpdater
 				abs.setStatusCode(GenericStatusCode.ERROR);
 			}
 		} else {
-			// 10% chance of switching back to a normal status code
-			if (x < 100) {
+			// 5% chance of switching back to a normal status code
+			if (x < 500) {
 				abs.setStatusCode(GenericStatusCode.NORMAL);
 			}
 		}

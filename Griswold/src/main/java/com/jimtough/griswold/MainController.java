@@ -90,7 +90,7 @@ public class MainController {
 	private static final int NOTIFICATION_AREA_HEIGHT = 50;
 	
 	private static final int NOTIFICATION_AUTOCYCLE_MILLISECONDS = 15000;
-	private static final int APP_BETA_STATUS_REFRESH_MILLISECONDS = 2500;
+	private static final int APP_BETA_STATUS_REFRESH_MILLISECONDS = 5000;
 	
 	private final Stage primaryStage;
 	private final NavigationController navController;

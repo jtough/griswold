@@ -7,8 +7,8 @@ package com.jimtough.griswold.beans;
  */
 public enum GenericStatusCode {
 
-	UNKNOWN("Unknown"),
 	NORMAL("Normal"),
+	UNKNOWN("Unknown"),
 	WARNING("Warning"),
 	ERROR("Error"),
 	OFFLINE("Offline");
@@ -16,7 +16,8 @@ public enum GenericStatusCode {
 	public final String displayString;
 	
 	private GenericStatusCode(final String displayString) {
-		this.displayString = displayString;
+		//this.displayString = displayString;
+		this.displayString = this.ordinal() + " - " + displayString;
 	}
 	
 }
