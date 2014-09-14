@@ -29,13 +29,12 @@ import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
@@ -44,9 +43,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
-import javafx.scene.text.Text;
-import javafx.scene.text.TextFlow;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -65,7 +61,7 @@ public class AuthenticationController {
 	private static final int SCENE_HEIGHT = 650;
 	private static final int BACKGROUND_RECT_HEIGHT = 100;
 	
-	private static final double OPACITY_LEVEL = 0.75;
+	private static final double OPACITY_LEVEL = 0.8;
 	
 	// create a model representing a user
 	private final User user = new User();
@@ -137,28 +133,36 @@ public class AuthenticationController {
 		background.setArcHeight(15);
 		background.setArcWidth(15);
 		//background.setFill(Color.rgb(0, 0, 0, .55));
-		background.setFill(Color.rgb(0, 0, 0, OPACITY_LEVEL));
+		background.setFill(Color.rgb(160, 160, 160, OPACITY_LEVEL));
 		background.setStrokeWidth(1.5);
 		background.setStroke(FOREGROUND_COLOR_FOR_INPUT_CONTROLS);
 		return background;
 	}
 	
-	Text createUsernameText() {
-		Text userName = new Text();
-		userName.setFont(Font.font("SanSerif", FontWeight.BOLD, 30));
-		userName.setFill(FOREGROUND_COLOR_FOR_INPUT_CONTROLS);
-		userName.setSmooth(true);
-		userName.textProperty().bind(user.userNameProperty());
+	TextField createUsernameText() {
+		TextField usernameField = new TextField();
+		//---------------------------------------------------------------
+		// password text field 
+		usernameField.setFont(Font.font("SanSerif", 20));
+		usernameField.setPromptText("Username");
+		usernameField.setStyle("-fx-text-fill:black; "
+				+ "-fx-prompt-text-fill:gray; "
+				+ "-fx-highlight-text-fill:black; "
+				+ "-fx-highlight-fill: gray; "
+				+ "-fx-background-color: rgba(255, 153, 51, .8); ");
+		usernameField.prefWidthProperty().bind(stage.widthProperty().subtract(55));
+		//---------------------------------------------------------------
 		
-		return userName;
+		usernameField.textProperty().bind(user.userNameProperty());
+		
+		return usernameField;
 	}
 
 	void addUsernameInputToGridPane(
 			GridPane gridpane, 
-			Text userName) {
-		TextFlow textFlow = new TextFlow(userName);
-		GridPane.setHalignment(textFlow, HPos.LEFT);
-		gridpane.add(textFlow, 1, 0);
+			TextField userName) {
+		GridPane.setHalignment(userName, HPos.LEFT);
+		gridpane.add(userName, 1, 0);
 	}
 
 	PasswordField createPasswordField() {
@@ -171,21 +175,20 @@ public class AuthenticationController {
 				+ "-fx-prompt-text-fill:gray; "
 				+ "-fx-highlight-text-fill:black; "
 				+ "-fx-highlight-fill: gray; "
-				+ "-fx-background-color: rgba(255, 255, 255, .80); ");
+				//+ "-fx-background-color: rgba(255, 255, 255, .80); ");
+				+ "-fx-background-color: rgba(255, 153, 51, .8); ");
 		passwordField.prefWidthProperty().bind(stage.widthProperty().subtract(55));
 		Tooltip passwordTT = new Tooltip(
 				"Heyo! Press Escape key to quit. " + 
 				"Fake password is '" + TEST_PASSWORD + "'.");
 		SVGPath passwordTtIcon = new SVGPath();
 		passwordTtIcon.setFill(FOREGROUND_COLOR_FOR_INPUT_CONTROLS);
-		passwordTtIcon.setContent("M16,1.466C7.973,1.466,1.466,7.973,1.466,16c0,8.027,6.507,14.534,14.534,14.534c8.027,0,14.534-6.507,14.534-14.534C30.534,7.973,24.027,1.466,16,1.466z M14.757,8h2.42v2.574h-2.42V8z M18.762,23.622H16.1c-1.034,0-1.475-0.44-1.475-1.496v-6.865c0-0.33-0.176-0.484-0.484-0.484h-0.88V12.4h2.662c1.035,0,1.474,0.462,1.474,1.496v6.887c0,0.309,0.176,0.484,0.484,0.484h0.88V23.622z");
+		passwordTtIcon.setContent(SVG_INFO);
 		passwordTT.setGraphic(passwordTtIcon);
 		passwordField.setTooltip(passwordTT);
 		//---------------------------------------------------------------
 		
 		user.passwordProperty().bind(passwordField.textProperty());
-		
-		passwordField.setBackground(new Background(new BackgroundFill(Color.LAWNGREEN, null, null)));
 		
 		return passwordField;
 	}
@@ -273,8 +276,7 @@ public class AuthenticationController {
 			throw new RuntimeException("Cannot load image", e);
 		}
 		
-		// TODO Replace Text with TextField
-		Text userName = createUsernameText();
+		TextField userName = createUsernameText();
 		addUsernameInputToGridPane(gridpaneX, userName);
 		
 		PasswordField passwordField = createPasswordField();
@@ -326,6 +328,9 @@ public class AuthenticationController {
 		formLayout.getChildren().addAll(imageView, stackPane);
 		
 		root.getChildren().addAll(formLayout);
+
+		// Set focus to the password input field when window initially displays
+		passwordField.requestFocus();
 
 		stage.show();
 
