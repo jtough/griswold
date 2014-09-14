@@ -1,5 +1,7 @@
 package com.jimtough.griswold;
 
+import static com.jimtough.griswold.SVGStringConstants.*;
+
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,6 +41,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -58,6 +61,12 @@ public class AuthenticationController {
 	private static final Color FOREGROUND_COLOR_FOR_INPUT_CONTROLS = 
 			Color.rgb(255, 255, 255, .9);
 
+	private static final int SCENE_WIDTH = 640;
+	private static final int SCENE_HEIGHT = 650;
+	private static final int BACKGROUND_RECT_HEIGHT = 100;
+	
+	private static final double OPACITY_LEVEL = 0.75;
+	
 	// create a model representing a user
 	private final User user = new User();
 	
@@ -116,15 +125,26 @@ public class AuthenticationController {
 		Image image = new Image(bis);
 		imageView.setImage(image);
 		bis.close();
-		imageView.setOpacity(0.5);
-		//file:///C:/Documents%20and%20Settings/davris/FileSchemeURIs.doc		
+		imageView.setOpacity(OPACITY_LEVEL);
 		return imageView;
 	}
 
+	Rectangle createInputTextBackgroundRectangle() {
+		// rounded rectangular background 
+		Rectangle background = new Rectangle(SCENE_WIDTH, BACKGROUND_RECT_HEIGHT);
+		background.setX(0);
+		background.setY(0);
+		background.setArcHeight(15);
+		background.setArcWidth(15);
+		//background.setFill(Color.rgb(0, 0, 0, .55));
+		background.setFill(Color.rgb(0, 0, 0, OPACITY_LEVEL));
+		background.setStrokeWidth(1.5);
+		background.setStroke(FOREGROUND_COLOR_FOR_INPUT_CONTROLS);
+		return background;
+	}
+	
 	Text createUsernameText() {
 		Text userName = new Text();
-		// a read only field holding the user name.
-		//Text userName = new Text();
 		userName.setFont(Font.font("SanSerif", FontWeight.BOLD, 30));
 		userName.setFill(FOREGROUND_COLOR_FOR_INPUT_CONTROLS);
 		userName.setSmooth(true);
@@ -133,7 +153,7 @@ public class AuthenticationController {
 		return userName;
 	}
 
-	void createUsernameRow(
+	void addUsernameInputToGridPane(
 			GridPane gridpane, 
 			Text userName) {
 		TextFlow textFlow = new TextFlow(userName);
@@ -170,29 +190,35 @@ public class AuthenticationController {
 		return passwordField;
 	}
 
-	void createPasswordRow(
+	SVGPath createDeniedIcon() {
+		SVGPath deniedIcon = new SVGPath();
+		// error X icon 
+		deniedIcon.setFill(Color.rgb(255, 0, 0, .9));
+		deniedIcon.setStroke(Color.WHITE);// 
+		deniedIcon.setContent(SVG_X);
+		deniedIcon.setVisible(false);
+		return deniedIcon;
+	}
+
+	SVGPath createGrantedIcon() {
+		SVGPath grantedIcon = new SVGPath();
+		// checkmark icon
+		grantedIcon.setFill(Color.rgb(0, 255, 0, .9));
+		grantedIcon.setStroke(Color.WHITE);// 
+		grantedIcon.setContent(SVG_CHECKMARK);
+		grantedIcon.setVisible(false);
+		grantedIcon.visibleProperty().bind(GRANTED_ACCESS);
+		return grantedIcon;
+	}
+	
+	void addPasswordInputToGridPane(
 			GridPane gridpane,
 			PasswordField passwordField,
 			SVGPath deniedIcon,
 			SVGPath grantedIcon) {
-		
-		// error X icon 
-		deniedIcon.setFill(Color.rgb(255, 0, 0, .9));
-		deniedIcon.setStroke(Color.WHITE);// 
-		deniedIcon.setContent("M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z");
-		deniedIcon.setVisible(false);
-
-		// checkmark icon
-		grantedIcon.setFill(Color.rgb(0, 255, 0, .9));
-		grantedIcon.setStroke(Color.WHITE);// 
-		grantedIcon.setContent("M2.379,14.729 5.208,11.899 12.958,19.648 25.877,6.733 28.707,9.561 12.958,25.308z");
-		grantedIcon.setVisible(false);
-
 		StackPane accessIndicator = new StackPane();
 		accessIndicator.getChildren().addAll(deniedIcon, grantedIcon);
-		accessIndicator.setAlignment(Pos.CENTER_RIGHT);
-
-		grantedIcon.visibleProperty().bind(GRANTED_ACCESS);
+		accessIndicator.setAlignment(Pos.CENTER);
 		
 		GridPane.setHalignment(passwordField, HPos.LEFT);
 		gridpane.add(passwordField, 1, 1);
@@ -206,9 +232,11 @@ public class AuthenticationController {
 		stage.initModality(Modality.APPLICATION_MODAL);
 		stage.initOwner(parent);
 		stage.setResizable(false);
+		stage.centerOnScreen();
 		
 		Group root = new Group();
-		Scene scene = new Scene(root, 640, 800, Color.rgb(0, 0, 0, 0));
+		Scene scene = new Scene(
+				root, SCENE_WIDTH, SCENE_HEIGHT, Color.rgb(0, 0, 0, 0));
 		stage.setScene(scene);
 		scene.addEventHandler(KeyEvent.KEY_RELEASED,
 			new EventHandler<KeyEvent>() {
@@ -220,6 +248,9 @@ public class AuthenticationController {
 					}
 				}
 			});
+		
+		StackPane stackPane = new StackPane();
+		Rectangle backgroundRect = createInputTextBackgroundRectangle();
 
 		GridPane gridpaneX = new GridPane();
 		gridpaneX.setPadding(new Insets(5));
@@ -227,15 +258,13 @@ public class AuthenticationController {
 		gridpaneX.setVgap(5);
 		ColumnConstraints col1Size = new ColumnConstraints(8);
 		ColumnConstraints col2Size = new ColumnConstraints(550);
-		ColumnConstraints col3Size = new ColumnConstraints(32);
+		ColumnConstraints col3Size = new ColumnConstraints(48);
 		gridpaneX.getColumnConstraints().addAll(col1Size, col2Size, col3Size);
-		//gridpaneX.setGridLinesVisible(false);
-		gridpaneX.setBackground(new Background(new BackgroundFill(Color.SALMON, null, null)));
-		gridpaneX.setGridLinesVisible(true);
+		gridpaneX.setGridLinesVisible(false);
+		//gridpaneX.setBackground(new Background(new BackgroundFill(Color.SALMON, null, null)));
+		//gridpaneX.setGridLinesVisible(true);
 
-		
-		//// all text, borders, svg paths will use white
-		//Color foregroundColor = Color.rgb(255, 255, 255, .9);
+		stackPane.getChildren().addAll(backgroundRect, gridpaneX);
 
 		ImageView imageView = null;
 		try {
@@ -246,13 +275,13 @@ public class AuthenticationController {
 		
 		// TODO Replace Text with TextField
 		Text userName = createUsernameText();
-		createUsernameRow(gridpaneX, userName);
+		addUsernameInputToGridPane(gridpaneX, userName);
 		
 		PasswordField passwordField = createPasswordField();
-		SVGPath deniedIcon = new SVGPath();
-		SVGPath grantedIcon = new SVGPath();
+		SVGPath deniedIcon = createDeniedIcon();
+		SVGPath grantedIcon = createGrantedIcon();
 		
-		createPasswordRow(gridpaneX, passwordField, deniedIcon, grantedIcon);
+		addPasswordInputToGridPane(gridpaneX, passwordField, deniedIcon, grantedIcon);
 
 		// user hits the enter key
 		passwordField.setOnAction(actionEvent -> {
@@ -293,8 +322,8 @@ public class AuthenticationController {
 			}
 		});
 
-		VBox formLayout = new VBox(4);
-		formLayout.getChildren().addAll(imageView, gridpaneX);
+		VBox formLayout = new VBox(10);
+		formLayout.getChildren().addAll(imageView, stackPane);
 		
 		root.getChildren().addAll(formLayout);
 
