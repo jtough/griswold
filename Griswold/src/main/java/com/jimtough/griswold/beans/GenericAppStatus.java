@@ -1,10 +1,12 @@
 package com.jimtough.griswold.beans;
 
-import java.util.Date;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
-import javafx.beans.property.LongProperty;
+import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyStringProperty;
-import javafx.beans.property.SimpleLongProperty;
+import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
@@ -16,9 +18,16 @@ import javafx.beans.property.StringProperty;
  * @author JTOUGH
  */
 public abstract class GenericAppStatus {
+
+	private static final DateTimeFormatter LAST_UPDATED_DATE_TIME_FORMATTER = 
+			DateTimeFormat.forPattern("MM/dd HH:mm:ss");
 	
 	private StringProperty hostname;
-	private LongProperty lastUpdated;
+	private final ReadOnlyStringWrapper lastUpdatedString;
+	private final ReadOnlyStringWrapper statusString;
+	
+	private GenericStatusCode genericStatusCode;
+	private DateTime lastUpdatedDateTime;
 	
 	/**
 	 * Constructor
@@ -30,10 +39,13 @@ public abstract class GenericAppStatus {
 					"hostname cannot be null or empty string");
 		}
 		setHostname(hostname);
+		this.statusString = new ReadOnlyStringWrapper("");
+		this.lastUpdatedString = new ReadOnlyStringWrapper("");
+		setStatusCode(GenericStatusCode.UNKNOWN);
 	}
 
+	//---------------------------------------------------
 	// hostname accessors
-	
 	private final void setHostname(String value) {
 		hostnameProperty().set(value);
 	}
@@ -48,42 +60,72 @@ public abstract class GenericAppStatus {
 		}
 		return hostname;
 	}
-
+	
+	//---------------------------------------------------
 	// statusString accessors
-
-	public final String getStatusString() {
-		return statusStringProperty().get();
+	public synchronized void setStatusCode(GenericStatusCode genericStatusCode) {
+		this.genericStatusCode = genericStatusCode;
+		setStatusString(this.genericStatusCode.displayString);
 	}
 
+	public synchronized GenericStatusCode getStatusCode() {
+		return this.genericStatusCode;
+	}
+	
+	private final void setStatusString(String value) {
+		if (Platform.isFxApplicationThread()) {
+			this.statusString.set(value);
+		} else {
+			Platform.runLater(() -> {
+				this.statusString.set(value);
+			});
+		}
+	}
+	
 	/**
 	 * Get the string that represents the status of the application instance,
 	 * wrapped as a read-only property
 	 * @return Non-null {@code ReadOnlyStringProperty}
 	 */
-	public abstract ReadOnlyStringProperty statusStringProperty();
-
+	public ReadOnlyStringProperty statusStringProperty() {
+		return statusString.getReadOnlyProperty();
+	}
+	
+	//---------------------------------------------------
 	// lastUpdated accessors
+	String asLastUpdatedString(DateTime dateTime) {
+		return LAST_UPDATED_DATE_TIME_FORMATTER.print(dateTime);
+	}
 	
-	public final void setLastUpdated(Date value) {
-		if (value == null) {
-			throw new IllegalArgumentException("value cannot be null");
+	public synchronized void setLastUpdatedDateTime(
+			DateTime lastUpdatedDateTime) {
+		if (lastUpdatedDateTime == null) {
+			throw new IllegalArgumentException(
+					"lastUpdatedDateTime cannot be null");
 		}
-		lastUpdatedProperty().set(value.getTime());
+		this.lastUpdatedDateTime = lastUpdatedDateTime;
+		setLastUpdatedString(asLastUpdatedString(this.lastUpdatedDateTime));
 	}
 
-	public final long getLastUpdated() {
-		return lastUpdatedProperty().get();
+	public synchronized DateTime getLastUpdatedDateTime() {
+		return this.lastUpdatedDateTime;
 	}
-
-	public LongProperty lastUpdatedProperty() {
-		if (lastUpdated == null) {
-			lastUpdated = new SimpleLongProperty();
+	
+	private final void setLastUpdatedString(String value) {
+		if (Platform.isFxApplicationThread()) {
+			this.lastUpdatedString.set(value);
+		} else {
+			Platform.runLater(() -> {
+				this.lastUpdatedString.set(value);
+			});
 		}
-		return lastUpdated;
 	}
 	
+	public ReadOnlyStringProperty lastUpdatedStringProperty() {
+		return lastUpdatedString.getReadOnlyProperty();
+	}
 	
-	
+	//---------------------------------------------------
 
 	@Override
 	public String toString() {

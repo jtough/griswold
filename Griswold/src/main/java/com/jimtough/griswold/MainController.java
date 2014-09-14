@@ -4,16 +4,17 @@ import static com.jimtough.griswold.SVGStringConstants.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.jimtough.griswold.auth.AuthenticatedUser;
 import com.jimtough.griswold.beans.AppAlphaStatus;
 import com.jimtough.griswold.beans.AppBetaStatus;
+import com.jimtough.griswold.beans.GenericStatusCode;
 import com.jimtough.griswold.beans.Person;
 import com.jimtough.griswold.notification.AuthenticatedUserInfoMessageSource;
 import com.jimtough.griswold.notification.CurrentTimeMessageSource;
@@ -174,8 +175,8 @@ public class MainController {
 		List<AppAlphaStatus> sampleAppAlphaStatusList = new ArrayList<AppAlphaStatus>();
 		for (int i=0; i<100; i++) {
 			AppAlphaStatus aas = new AppAlphaStatus("svr-" + i + ".jimtough.com");
-			aas.setLastUpdated(new Date());
-			aas.setStatusString("Coolio");
+			aas.setLastUpdatedDateTime(DateTime.now());
+			aas.setStatusCode(GenericStatusCode.UNKNOWN);
 			sampleAppAlphaStatusList.add(aas);
 		}
 		
@@ -197,8 +198,8 @@ public class MainController {
 			long randomDurationMilliseconds = Math.abs(r.nextLong()) % FIVE_HUNDRED_DAYS;
 			//int randomDurationMilliseconds = r.nextInt(432000000); // 5 days max
 			AppBetaStatus abs = new AppBetaStatus("host-" + i + ".jimtough.com");
-			abs.setLastUpdated(new Date());
-			abs.setStatusString("stucco");
+			abs.setLastUpdatedDateTime(DateTime.now());
+			abs.setStatusCode(GenericStatusCode.UNKNOWN);
 			abs.setUptime(new org.joda.time.Duration(randomDurationMilliseconds));
 			//abs.setUptime(new org.joda.time.Duration(exactlyFiveDays + oneHourAndOneMinuteAndOneMillisecond));
 			sampleStatusList.add(abs);
@@ -659,9 +660,14 @@ public class MainController {
 		statusStringCol.setEditable(false);
 		statusStringCol.setCellValueFactory(new PropertyValueFactory<AppAlphaStatus,String>("statusString"));
 		
+		TableColumn<AppAlphaStatus, String> lastUpdatedStringCol = new TableColumn<>("Last Updated");
+		lastUpdatedStringCol.setEditable(false);
+		lastUpdatedStringCol.setCellValueFactory(new PropertyValueFactory<AppAlphaStatus,String>("lastUpdatedString"));
+		
 		List<TableColumn<AppAlphaStatus,String>> tableColumnList = new ArrayList<>();
 		tableColumnList.add(hostnameCol);
 		tableColumnList.add(statusStringCol);
+		tableColumnList.add(lastUpdatedStringCol);
 		
 		tv.getColumns().setAll(tableColumnList);
 		
@@ -711,6 +717,10 @@ public class MainController {
 		TableColumn<AppBetaStatus, String> statusStringCol = new TableColumn<>("Status");
 		statusStringCol.setEditable(false);
 		statusStringCol.setCellValueFactory(new PropertyValueFactory<AppBetaStatus,String>("statusString"));
+		
+		TableColumn<AppBetaStatus, String> lastUpdatedStringCol = new TableColumn<>("Last Updated");
+		lastUpdatedStringCol.setEditable(false);
+		lastUpdatedStringCol.setCellValueFactory(new PropertyValueFactory<AppBetaStatus,String>("lastUpdatedString"));
 
 		TableColumn<AppBetaStatus, String> uptimeCol = new TableColumn<>("Uptime");
 		uptimeCol.setEditable(false);
@@ -719,6 +729,7 @@ public class MainController {
 		List<TableColumn<AppBetaStatus,? extends Object>> tableColumnList = new ArrayList<>();
 		tableColumnList.add(hostnameCol);
 		tableColumnList.add(statusStringCol);
+		tableColumnList.add(lastUpdatedStringCol);
 		tableColumnList.add(uptimeCol);
 		
 		tv.getColumns().setAll(tableColumnList);

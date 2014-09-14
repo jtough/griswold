@@ -13,7 +13,6 @@ public class AppBetaStatus extends GenericAppStatus {
 	private final static String UPTIME_FORMAT_STRING =
 			"%dy, %02dm, %dw, %02dd, %02d:%02d:%02d.%03d";
 	
-	private final ReadOnlyStringWrapper statusString;
 	private Duration uptime;
 	private final ReadOnlyStringWrapper uptimeString;
 
@@ -25,7 +24,6 @@ public class AppBetaStatus extends GenericAppStatus {
 		super(hostname);
 		this.uptime = new Duration(0);
 		this.uptimeString = new ReadOnlyStringWrapper(this.uptime.toString());
-		this.statusString = new ReadOnlyStringWrapper("");
 	}
 
 	// uptime accessors
@@ -63,18 +61,6 @@ public class AppBetaStatus extends GenericAppStatus {
 
 	public ReadOnlyStringProperty uptimeStringProperty() {
 		return uptimeString.getReadOnlyProperty();
-	}
-
-	// statusString accessors
-	
-	public final void setStatusString(String value) {
-		statusStringProperty();		// ensure property is initialized
-		statusString.set(value);
-	}
-	
-	@Override
-	public ReadOnlyStringProperty statusStringProperty() {
-		return statusString.getReadOnlyProperty();
 	}
 	
 	//--------------------------------------

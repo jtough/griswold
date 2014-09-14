@@ -1,11 +1,6 @@
 package com.jimtough.griswold.beans;
 
-import javafx.beans.property.ReadOnlyStringProperty;
-import javafx.beans.property.ReadOnlyStringWrapper;
-
 public class AppAlphaStatus extends GenericAppStatus {
-
-	private ReadOnlyStringWrapper statusString;
 
 	/**
 	 * Constructor
@@ -15,21 +10,6 @@ public class AppAlphaStatus extends GenericAppStatus {
 		super(hostname);
 	}
 
-	// statusString accessors
-	
-	public final void setStatusString(String value) {
-		statusStringProperty();		// ensure property is initialized
-		statusString.set(value);
-	}
-	
-	@Override
-	public ReadOnlyStringProperty statusStringProperty() {
-		if (statusString == null) {
-			statusString = new ReadOnlyStringWrapper();
-		}
-		return statusString.getReadOnlyProperty();
-	}
-	
 	//--------------------------------------
 
 	public int hashCode() {
