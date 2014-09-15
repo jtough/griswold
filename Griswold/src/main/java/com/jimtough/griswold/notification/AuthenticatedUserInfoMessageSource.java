@@ -124,12 +124,18 @@ public class AuthenticatedUserInfoMessageSource
 	}
 
 	@Override
-	public synchronized NotificationMessage getMessage() {
+	public NotificationMessage offerMessage() {
 		if (this.messagePool.isEmpty()) {
 			return null;
 		}
 		int messagePoolIndex = random.nextInt(this.messagePool.size());
 		return messagePool.get(messagePoolIndex);
+	}
+
+	@Override
+	public void takeMessage(NotificationMessage notificationMessage) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

@@ -7,13 +7,13 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+/**
+ * Reads a list of famous movie quotes from the text file, then provides
+ * them as notification messages in a sequential, repeating cycle.
+ * 
+ * @author JTOUGH
+ */
 public class MovieQuotesMessageSource implements NotificationMessageSource {
-
-	private static final Logger logger =
-			LoggerFactory.getLogger(MovieQuotesMessageSource.class);
 
 	private static final String MOVIE_QUOTES_RESOURCE_FILE = "/movie-quotes.txt";
 	
@@ -32,20 +32,23 @@ public class MovieQuotesMessageSource implements NotificationMessageSource {
 			throw new IllegalStateException("No movie quotes loaded");
 		}
 	}
-	
+
 	@Override
-	public synchronized NotificationMessage getMessage() {
+	public NotificationMessage offerMessage() {
 		if (currentQuoteIndex >= movieQuoteList.size()) {
 			currentQuoteIndex = 0;
 		}
 		String nextQuote = movieQuoteList.get(currentQuoteIndex);
-		currentQuoteIndex++;
-		logger.debug("Returning next movie quote: " + nextQuote);
 		return new NotificationMessage(
 				nextQuote, 
 				NotificationImportance.TRIVIAL,
 				NotificationCategory.INFO_NEUTRAL,
 				NotificationIcon.COOL_STUFF);
+	}
+
+	@Override
+	public void takeMessage(NotificationMessage notificationMessage) {
+		currentQuoteIndex++;
 	}
 
 }

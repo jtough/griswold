@@ -70,6 +70,49 @@ public class NotificationAreaUpdater {
 		}
 		messageSourceList.add(messageSource);
 	}
+
+	NotificationMessage selectMessagePreferringHighestImportance(
+			List<NotificationMessageSource> messageSourceList) {
+		NotificationMessage messageToUse = null;
+		for (NotificationMessageSource source : messageSourceList) {
+			NotificationMessage notificationMessage = source.offerMessage();
+			if (notificationMessage == null) {
+				logger.info("Null message offered");
+			} else if (messageToUse == null) {
+				messageToUse = notificationMessage;
+				logger.info("Found first offered message: [" +
+						messageToUse.getMessageText() + "]");
+			} else {
+				if (messageToUse.getImportance().ordinal() < 
+						notificationMessage.getImportance().ordinal()) {
+					logger.info("Replacing less important message: [" +
+							messageToUse.getMessageText() + 
+							"] with more important message: [" +
+							notificationMessage.getMessageText() + "]");
+					messageToUse = notificationMessage;
+				} else if (messageToUse.getImportance().ordinal() == 
+						notificationMessage.getImportance().ordinal()) {
+					boolean replaceWithNewMessage = random.nextBoolean();
+					if (replaceWithNewMessage) {
+						logger.info("Randomly decided to replace message [" +
+								messageToUse.getMessageText() + 
+								"] with equally important message: [" +
+								notificationMessage.getMessageText() + "]");
+						messageToUse = notificationMessage;
+					} else {
+						logger.info("Randomly decided to keep message [" +
+								messageToUse.getMessageText() + 
+								"] because equally important message: [" +
+								notificationMessage.getMessageText() + 
+								"] lost the coin toss");
+					}
+				} else {
+					logger.info("New message is less important - ignore");
+				}
+			}
+		}
+		return messageToUse;
+	}
 	
 	public synchronized void rotateText() {
 		logger.info("rotateText() | INVOKED");
@@ -77,10 +120,13 @@ public class NotificationAreaUpdater {
 			logger.warn("rotateText() | No message sources have been set");
 			this.notificationAreaTextStringWrapper.set("");
 		}
-		int messageSourceIndex = random.nextInt(this.messageSourceList.size());
-		NotificationMessageSource messageSource =
-				this.messageSourceList.get(messageSourceIndex);
-		NotificationMessage message = messageSource.getMessage();
+		//int messageSourceIndex = random.nextInt(this.messageSourceList.size());
+		//NotificationMessageSource messageSource =
+		//		this.messageSourceList.get(messageSourceIndex);
+		//NotificationMessage message = messageSource.getMessage();
+		
+		NotificationMessage message = 
+				selectMessagePreferringHighestImportance(messageSourceList);
 
 		final Color backgroundColor;
 		switch (message.getCategory()) {

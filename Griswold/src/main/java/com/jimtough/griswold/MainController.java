@@ -31,6 +31,7 @@ import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.SortedList;
 import javafx.concurrent.ScheduledService;
 import javafx.concurrent.Task;
 import javafx.event.EventHandler;
@@ -482,7 +483,7 @@ public class MainController {
 
 	HBox createNotificationArea() 
 			throws IOException {
-		this.notificationArea = new HBox();
+		this.notificationArea = new HBox(2);
 		this.notificationArea.prefWidthProperty().bind(this.primaryStage.widthProperty());
 		this.notificationArea.prefHeight(NOTIFICATION_AREA_HEIGHT);
 		this.notificationArea.setMinHeight(NOTIFICATION_AREA_HEIGHT);
@@ -501,21 +502,17 @@ public class MainController {
 		dropShadow.setOffsetY(3.0);
 		dropShadow.setColor(Color.color(0.4, 0.5, 0.5));		
 		notificationAreaIcon.setEffect(dropShadow);
-		//notificationAreaIcon.setFill(Color.BLUE);
-		//notificationAreaIcon.visibleProperty().set(false);
+		notificationAreaIcon.visibleProperty().set(false);
 		notificationAreaIcon.setOpacity(1.0);
 		
 		StackPane stackPane = new StackPane(rect, notificationAreaIcon);
 		stackPane.setAlignment(Pos.CENTER);
-
-		Separator separator = new Separator(Orientation.VERTICAL);
 		
 		Text text = new Text();
 		text.textProperty().bind(this.notificationAreaTextString);
 		TextFlow textFlow = new TextFlow(text);
 		
-		this.notificationArea.getChildren().addAll(
-				stackPane, separator, textFlow);
+		this.notificationArea.getChildren().addAll(stackPane, textFlow);
 		
 		this.notificationAreaTextString.addListener(
 				(observable, oldValue, newValue) -> {
@@ -538,6 +535,8 @@ public class MainController {
 				new CurrentTimeMessageSource());
 		this.notificationAreaUpdater.addMessageSource(
 				new MovieQuotesMessageSource());
+		this.notificationAreaUpdater.addMessageSource(
+				this.appBetaStatusUpdater);
 		
 		return this.notificationArea;
 	}
@@ -584,8 +583,10 @@ public class MainController {
 		fadeOut.setFromValue(1.0);
 		fadeOut.setToValue(0.0);
 		
-		fadeOut.setOnFinished(
-				actionEvent -> this.notificationAreaUpdater.rotateText());
+		fadeOut.setOnFinished(actionEvent -> {
+			this.notificationAreaUpdater.rotateText();
+			this.notificationAreaIcon.visibleProperty().set(true);
+		});
 		
 		FadeTransition fadeIn = 
 				new FadeTransition(javafx.util.Duration.millis(1000), node);
@@ -715,9 +716,16 @@ public class MainController {
 
 	TableView<AppBetaStatus> createAppBetaStatusTableView(
 			final ObservableList<AppBetaStatus> observableList) {
-		TableView<AppBetaStatus> tv = new TableView<AppBetaStatus>();
 		
-		tv.setItems(observableList);
+		// create a SortedList based on the provided ObservableList
+		SortedList<AppBetaStatus> sortedList = 
+				new SortedList<AppBetaStatus>(observableList);
+		
+		TableView<AppBetaStatus> tv = new TableView<AppBetaStatus>(sortedList);
+		//tv.setItems(observableList);
+
+		// bind the sortedList comparator to the TableView comparator
+		sortedList.comparatorProperty().bind(tv.comparatorProperty());
 		
 		tv.setOnMouseClicked(event -> {
 			if (event.getButton().equals(MouseButton.PRIMARY)) {
@@ -762,6 +770,7 @@ public class MainController {
 		tableColumnList.add(uptimeCol);
 		
 		tv.getColumns().setAll(tableColumnList);
+		
 		
 		// selection listening
 		tv.getSelectionModel().selectedItemProperty().addListener(
@@ -822,8 +831,8 @@ public class MainController {
 		if (this.observableAppBetaStatusList == null) {
 			throw new IllegalStateException("observableAppBetaStatusList is null");
 		}
-		this.appBetaStatusUpdater = 
-				new AppBetaStatusUpdater(observableAppBetaStatusList);
+		this.appBetaStatusUpdater = new AppBetaStatusUpdater(
+				this.observableAppBetaStatusList, this.tvBeta);
 		this.appBetaStatusUpdater.setDelay(new javafx.util.Duration(APP_BETA_STATUS_REFRESH_MILLISECONDS));
 		this.appBetaStatusUpdater.setPeriod(new javafx.util.Duration(APP_BETA_STATUS_REFRESH_MILLISECONDS));
 	}

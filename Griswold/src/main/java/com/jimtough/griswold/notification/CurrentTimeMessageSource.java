@@ -12,9 +12,9 @@ public class CurrentTimeMessageSource implements NotificationMessageSource {
 
 	private static final DateTimeFormatter CURRENT_TIME_FORMATTER = 
 			DateTimeFormat.forPattern("HH:mm:ss z");
-	
+
 	@Override
-	public NotificationMessage getMessage() {
+	public NotificationMessage offerMessage() {
 		final String messageText = 
 				"The current time is: " + 
 				CURRENT_TIME_FORMATTER.print(DateTime.now());
@@ -22,7 +22,12 @@ public class CurrentTimeMessageSource implements NotificationMessageSource {
 				messageText, 
 				NotificationImportance.TRIVIAL,
 				NotificationCategory.INFO_NEUTRAL,
-				NotificationIcon.INFO);
+				NotificationIcon.CLOCK);
+	}
+
+	@Override
+	public void takeMessage(NotificationMessage notificationMessage) {
+		// nothing to do here
 	}
 
 }

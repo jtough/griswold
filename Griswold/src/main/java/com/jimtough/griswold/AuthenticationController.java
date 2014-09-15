@@ -61,7 +61,7 @@ public class AuthenticationController {
 	private static final int SCENE_HEIGHT = 650;
 	private static final int BACKGROUND_RECT_HEIGHT = 100;
 	
-	private static final double OPACITY_LEVEL = 0.8;
+	private static final double OPACITY_LEVEL = 0.9;
 	
 	// create a model representing a user
 	private final User user = new User();
@@ -149,7 +149,7 @@ public class AuthenticationController {
 				+ "-fx-prompt-text-fill:gray; "
 				+ "-fx-highlight-text-fill:black; "
 				+ "-fx-highlight-fill: gray; "
-				+ "-fx-background-color: rgba(255, 153, 51, .8); ");
+				+ "-fx-background-color: rgba(255, 153, 51, .9); ");
 		usernameField.prefWidthProperty().bind(stage.widthProperty().subtract(55));
 		//---------------------------------------------------------------
 		
@@ -176,7 +176,7 @@ public class AuthenticationController {
 				+ "-fx-highlight-text-fill:black; "
 				+ "-fx-highlight-fill: gray; "
 				//+ "-fx-background-color: rgba(255, 255, 255, .80); ");
-				+ "-fx-background-color: rgba(255, 153, 51, .8); ");
+				+ "-fx-background-color: rgba(255, 153, 51, .9); ");
 		passwordField.prefWidthProperty().bind(stage.widthProperty().subtract(55));
 		Tooltip passwordTT = new Tooltip(
 				"Heyo! Press Escape key to quit. " + 
