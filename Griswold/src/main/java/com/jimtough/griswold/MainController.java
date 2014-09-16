@@ -69,6 +69,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.CycleMethod;
+import javafx.scene.paint.LinearGradient;
+import javafx.scene.paint.Stop;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Text;
@@ -98,6 +101,9 @@ public class MainController {
 	
 	private static final int NOTIFICATION_AUTOCYCLE_MILLISECONDS = 15000;
 	private static final int APP_BETA_STATUS_REFRESH_MILLISECONDS = 3000;
+	
+	//private static final Color TOOLBAR_BACKGROUND_COLOR = Color.LIGHTGREY;
+	private static final Color TOOLBAR_BACKGROUND_COLOR = Color.TRANSPARENT;
 	
 	private final Stage primaryStage;
 	private final NavigationController navController;
@@ -369,15 +375,26 @@ public class MainController {
 	private Button createToolbarButton(
 			String iconSVGString,
 			String tooltipText) {
+		
+		final LinearGradient linearGradient = new LinearGradient(
+				0, 
+				0, 
+				50, 
+				75,
+				false, 
+				CycleMethod.REFLECT, 
+				new Stop(0.0f, Color.rgb(0, 255, 0, 0.784)),
+				new Stop(1.0f, Color.rgb(0, 0, 0, 0.784)));
+		
 		Button b = new Button();
 		b.setMinHeight(50);
 		b.setMinWidth(75);
 		b.setMaxHeight(50);
 		b.setMaxWidth(75);
 		b.setBorder(new Border(
-				new BorderStroke(Color.LIGHTGREY, BorderStrokeStyle.SOLID, null, null)));
+				new BorderStroke(TOOLBAR_BACKGROUND_COLOR, BorderStrokeStyle.SOLID, null, null)));
 		b.setBackground(new Background(
-				new BackgroundFill(Color.CORNFLOWERBLUE, null, null)));
+				new BackgroundFill(linearGradient, null, null)));
 		Tooltip tt = new Tooltip(tooltipText);
 		b.setTooltip(tt);
 		SVGPath icon = new SVGPath();
@@ -402,12 +419,11 @@ public class MainController {
 			svgPath.setFill(Color.BLACK);
 		});
 		
-		
 		return b;
 	}
 	
 	VBox createToolbarContent(final NavigationController navController) {
-		VBox vBox = new VBox();
+		VBox vBox = new VBox(1);
 
 		Button bTools = createToolbarButton(
 				SVG_TOOLS, "Tools");
@@ -536,7 +552,7 @@ public class MainController {
 
 	HBox createFrameMiddleRegion() {
 		this.frameMiddleRegion = new HBox();
-		this.frameMiddleRegion.setBackground(new Background(new BackgroundFill(Color.CYAN, null, null)));
+		//this.frameMiddleRegion.setBackground(new Background(new BackgroundFill(Color.CYAN, null, null)));
 		
 		this.frameMiddleRegion.prefWidthProperty().bind(
 				this.sceneFrame.widthProperty());
@@ -843,7 +859,7 @@ public class MainController {
 		createRootNode();
 		createScene(this.rootNode);
 		createMenuBar(this.navController);
-		this.menuBar.setBackground(new Background(new BackgroundFill(Color.LIGHTPINK, null, null)));
+		//this.menuBar.setBackground(new Background(new BackgroundFill(Color.LIGHTPINK, null, null)));
 		
 		createMiddleRightContentArea();
 		tvPerson = createPersonTableView(createObservablePersonList());
@@ -855,7 +871,7 @@ public class MainController {
 		createNotificationAreaAutoCycler();
 		
 		createToolbarContent(navController);
-		this.toolbar.setBackground(new Background(new BackgroundFill(Color.CHARTREUSE, null, null)));
+		this.toolbar.setBackground(new Background(new BackgroundFill(TOOLBAR_BACKGROUND_COLOR, null, null)));
 		
 		this.sceneFrame = new VBox();
 		//this.sceneFrame.setBackground(new Background(new BackgroundFill(Color.ORANGE, null, null)));
