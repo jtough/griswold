@@ -35,7 +35,6 @@ import javafx.collections.transformation.SortedList;
 import javafx.concurrent.ScheduledService;
 import javafx.concurrent.Task;
 import javafx.event.EventHandler;
-import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Node;
@@ -46,9 +45,10 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.RadioMenuItem;
-import javafx.scene.control.Separator;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableView;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
@@ -75,6 +75,7 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import javafx.util.Callback;
 import javafx.util.Duration;
 
 /**
@@ -143,14 +144,6 @@ public class MainController {
 		this.navController = navController;
 		
 		this.notificationAreaTextString = new ReadOnlyStringWrapper();
-		//this.movieQuoteCycler = new MovieQuoteCycler(
-		//		this.notificationAreaTextString);
-		//this.notificationAreaUpdater = new NotificationAreaUpdater(
-		//		this.notificationAreaTextString);
-		//this.notificationAreaUpdater.addMessageSource(
-		//		new CurrentTimeMessageSource());
-		//this.notificationAreaUpdater.addMessageSource(
-		//		new MovieQuotesMessageSource());
 	}
 
 	Group createRootNode() {
@@ -742,18 +735,23 @@ public class MainController {
 		TableColumn<AppBetaStatus, String> hostnameCol = new TableColumn<>("Host");
 		hostnameCol.setEditable(false);
 		// Convenience form (preferred way for simple string-based properties)
-		hostnameCol.setCellValueFactory(new PropertyValueFactory<AppBetaStatus,String>("hostname"));
+		//hostnameCol.setCellValueFactory(new PropertyValueFactory<AppBetaStatus,String>("hostname"));
 		// Long form where I write the Callback implementation myself
-		//hostnameCol.setCellValueFactory(new Callback<CellDataFeatures<AppBetaStatus, String>, ObservableValue<String>>() {
-		//	public ObservableValue<String> call(CellDataFeatures<AppBetaStatus, String> p) {
-		//		logger.info("called for hostname - " + p.getValue().hostnameProperty().get());
-		//		return p.getValue().hostnameProperty();
-		//	}
-		//});
+		hostnameCol.setCellValueFactory(new Callback<CellDataFeatures<AppBetaStatus, String>, ObservableValue<String>>() {
+			public ObservableValue<String> call(CellDataFeatures<AppBetaStatus, String> p) {
+				logger.info("called for hostname - " + p.getValue().hostnameProperty().get());
+				return p.getValue().hostnameProperty();
+			}
+		});
 		
 		TableColumn<AppBetaStatus, String> statusStringCol = new TableColumn<>("Status");
 		statusStringCol.setEditable(false);
 		statusStringCol.setCellValueFactory(new PropertyValueFactory<AppBetaStatus,String>("statusString"));
+		statusStringCol.setCellFactory(new Callback<TableColumn<AppBetaStatus, String>, TableCell<AppBetaStatus, String>>() {
+			public TableCell<AppBetaStatus, String> call(TableColumn<AppBetaStatus, String> tc) {
+				return new GenericAppStatusTableCell();
+			}
+		});
 		
 		TableColumn<AppBetaStatus, String> lastUpdatedStringCol = new TableColumn<>("Last Updated");
 		lastUpdatedStringCol.setEditable(false);
