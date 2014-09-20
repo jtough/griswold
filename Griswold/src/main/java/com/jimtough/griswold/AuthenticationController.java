@@ -14,8 +14,15 @@ import com.jimtough.griswold.auth.AuthenticationFailureException;
 import com.jimtough.griswold.auth.Credentials;
 import com.jimtough.griswold.auth.UserAuthenticator;
 import com.jimtough.griswold.auth.UserAuthenticatorStub;
+import com.jimtough.griswold.auth.UserProperties.UserPropertyKey;
 import com.jimtough.griswold.beans.User;
 
+import javafx.animation.FadeTransition;
+import javafx.animation.ParallelTransition;
+import javafx.animation.PauseTransition;
+import javafx.animation.RotateTransition;
+import javafx.animation.ScaleTransition;
+import javafx.animation.SequentialTransition;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
@@ -43,9 +50,11 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.util.Duration;
 
 
 public class AuthenticationController {
@@ -76,6 +85,10 @@ public class AuthenticationController {
 	private final Stage stage;
 	private final NavigationController navController;
 	private final UserAuthenticator userAuthenticator;
+	private Group root;
+	private VBox formLayout;
+	private StackPane sceneStackPane;
+
 	
 	public AuthenticationController(
 			NavigationController navController,
@@ -104,8 +117,125 @@ public class AuthenticationController {
 		if (authUser == null) {
 			throw new IllegalArgumentException("authUser cannot be null");
 		}
-		this.navController.authenticationSuccessful(authUser);
-		this.stage.close();
+		String firstName = authUser.getUserProperties().getUserPropertyValue(
+				UserPropertyKey.GIVEN_NAME);
+		String lastName = authUser.getUserProperties().getUserPropertyValue(
+				UserPropertyKey.SURNAME);
+		displayWelcomeTextAndCloseDialog(firstName, lastName);
+	}
+	
+	private void displayWelcomeTextAndCloseDialog(
+			final String firstNameOfUser,
+			final String lastNameOfUser) {
+		VBox welcomeTextVBox = new VBox(20);
+
+		welcomeTextVBox.setAlignment(Pos.CENTER);
+		
+		Text textWelcome = new Text("Welcome");
+		textWelcome.setFont(new Font(120.0));
+		textWelcome.setFill(Color.MAGENTA);
+		textWelcome.setOpacity(1.0);
+		textWelcome.visibleProperty().set(false);
+		textWelcome.setStroke(Color.BLACK);
+		
+		Text textFirstNameOfUser = new Text(
+				firstNameOfUser != null ? firstNameOfUser : "");
+		textFirstNameOfUser.setFont(new Font(96.0));
+		textFirstNameOfUser.setFill(Color.MAGENTA);
+		textFirstNameOfUser.setOpacity(0.0);
+		textFirstNameOfUser.visibleProperty().set(false);
+		
+		Text textLastNameOfUser = new Text(
+				lastNameOfUser != null ? lastNameOfUser : "");
+		textLastNameOfUser.setFont(new Font(96.0));
+		textLastNameOfUser.setFill(Color.MAGENTA);
+		textLastNameOfUser.setOpacity(0.0);
+		textLastNameOfUser.visibleProperty().set(false);
+
+		welcomeTextVBox.getChildren().addAll(
+				textFirstNameOfUser, 
+				textWelcome, 
+				textLastNameOfUser);
+		
+		this.sceneStackPane.getChildren().add(welcomeTextVBox);
+		
+		textWelcome.scaleXProperty().set(0.01);
+		textWelcome.scaleYProperty().set(0.01);
+		textWelcome.visibleProperty().set(true);
+
+		textFirstNameOfUser.visibleProperty().set(true);
+		textLastNameOfUser.visibleProperty().set(true);
+
+		//----------------------------------------------------------------
+		// "Welcome" text expand in transition
+		final Duration welcomeTextInRotateDur = Duration.millis(2000);
+		final Duration welcomeTextInScaleDur = Duration.millis(2000);
+		ParallelTransition welcomeTextInTrans = null;
+		RotateTransition rotateT = new RotateTransition(welcomeTextInRotateDur);
+		rotateT.setFromAngle(0.0);
+		rotateT.setToAngle(1440.0);
+		ScaleTransition scaleUpT = new ScaleTransition(welcomeTextInScaleDur);
+		scaleUpT.setFromX(0.01);
+		scaleUpT.setFromY(0.01);
+		scaleUpT.setToX(1.0);
+		scaleUpT.setToY(1.0);
+		welcomeTextInTrans = new ParallelTransition(textWelcome, rotateT, scaleUpT);
+		welcomeTextInTrans.setOnFinished(actionEvent -> {
+			logger.trace("welcomeTextInTrans finished");
+		});
+		//----------------------------------------------------------------
+		
+		//----------------------------------------------------------------
+		// Application image and input form fades away transition
+		final Duration dialogFadeOutDur = Duration.millis(2000);
+		FadeTransition dialogFadeOutTrans = new FadeTransition(dialogFadeOutDur);
+		dialogFadeOutTrans.setNode(formLayout);
+		dialogFadeOutTrans.setFromValue(1.0);
+		dialogFadeOutTrans.setToValue(0.0);
+		//----------------------------------------------------------------
+		
+		ParallelTransition welcomeInAndDialogOutTrans = new ParallelTransition(
+				dialogFadeOutTrans, welcomeTextInTrans);
+		welcomeInAndDialogOutTrans.setOnFinished(actionEvent -> {
+			logger.trace("welcomeInAndDialogOutTrans finished");
+		});
+
+		//----------------------------------------------------------------
+		// User first and last name fade in transition
+		final Duration firstNameFadeInDur = Duration.millis(1500);
+		final Duration lastNameFadeInDur = Duration.millis(1500);
+		FadeTransition firstNameFadeInTrans = new FadeTransition(firstNameFadeInDur);
+		firstNameFadeInTrans.setNode(textFirstNameOfUser);
+		firstNameFadeInTrans.setFromValue(0.0);
+		firstNameFadeInTrans.setToValue(1.0);
+		FadeTransition lastNameFadeInTrans = new FadeTransition(lastNameFadeInDur);
+		lastNameFadeInTrans.setNode(textLastNameOfUser);
+		lastNameFadeInTrans.setFromValue(0.0);
+		lastNameFadeInTrans.setToValue(1.0);
+		lastNameFadeInTrans.setDelay(Duration.millis(750));
+		//----------------------------------------------------------------
+		
+		ParallelTransition namesFadeInTrans = new ParallelTransition(
+				firstNameFadeInTrans, lastNameFadeInTrans);
+		namesFadeInTrans.setOnFinished(actionEvent -> {
+			logger.trace("namesFadeInTrans finished");
+		});
+
+		final Duration welcomeTextVBoxFadeOutDur = Duration.millis(3000);
+		FadeTransition welcomeTextVBoxFadeOutTrans = new FadeTransition(welcomeTextVBoxFadeOutDur);
+		welcomeTextVBoxFadeOutTrans.setNode(welcomeTextVBox);
+		welcomeTextVBoxFadeOutTrans.setFromValue(1.0);
+		welcomeTextVBoxFadeOutTrans.setToValue(0.0);
+		
+		PauseTransition finalPauseT = new PauseTransition(Duration.millis(1000));
+		finalPauseT.setOnFinished((actionEvent) -> {
+			this.navController.authenticationSuccessful(authUser);
+			this.stage.close();
+		});
+		
+		SequentialTransition seqTransition = new SequentialTransition();
+		seqTransition.getChildren().addAll(welcomeInAndDialogOutTrans, namesFadeInTrans, welcomeTextVBoxFadeOutTrans, finalPauseT);
+		seqTransition.play();
 	}
 	
 	ImageView createImageView(
@@ -237,9 +367,9 @@ public class AuthenticationController {
 		stage.setResizable(false);
 		stage.centerOnScreen();
 		
-		Group root = new Group();
+		this.root = new Group();
 		Scene scene = new Scene(
-				root, SCENE_WIDTH, SCENE_HEIGHT, Color.rgb(0, 0, 0, 0));
+				this.root, SCENE_WIDTH, SCENE_HEIGHT, Color.rgb(0, 0, 0, 0));
 		stage.setScene(scene);
 		scene.addEventHandler(KeyEvent.KEY_RELEASED,
 			new EventHandler<KeyEvent>() {
@@ -324,11 +454,17 @@ public class AuthenticationController {
 			}
 		});
 
-		VBox formLayout = new VBox(10);
-		formLayout.getChildren().addAll(imageView, stackPane);
+		this.formLayout = new VBox(10);
+		this.formLayout.getChildren().addAll(imageView, stackPane);
 		
-		root.getChildren().addAll(formLayout);
-
+		// Create a StackPane and put the entire dialog content in it.
+		// We will stack welcome text on top later when the user has
+		// successfully logged in.
+		this.sceneStackPane = new StackPane();
+		this.sceneStackPane.getChildren().add(this.formLayout);
+		//this.sceneStackPane.setBackground(new Background(new BackgroundFill(Color.YELLOW, null, null)));
+		this.root.getChildren().addAll(this.sceneStackPane);
+		
 		// Set focus to the password input field when window initially displays
 		passwordField.requestFocus();
 
