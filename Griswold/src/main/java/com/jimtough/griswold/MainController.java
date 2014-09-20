@@ -95,8 +95,7 @@ public class MainController {
 
 	private static final Logger logger =
 			LoggerFactory.getLogger(MainController.class);
-
-	private static final String APPLICATION_TITLE = "Griswold";
+	
 	private static final int NOTIFICATION_AREA_HEIGHT = 50;
 	
 	private static final int NOTIFICATION_AUTOCYCLE_MILLISECONDS = 15000;
@@ -854,7 +853,7 @@ public class MainController {
 	public Scene createMainStageScene() throws IOException {
 		primaryStage.setWidth(800);
 		primaryStage.setHeight(600);
-		primaryStage.setTitle(APPLICATION_TITLE);
+		primaryStage.setTitle(MainApp.APPLICATION_NAME);
 		
 		createRootNode();
 		createScene(this.rootNode);

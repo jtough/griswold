@@ -38,6 +38,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+import javafx.scene.effect.Reflection;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
@@ -166,6 +167,7 @@ public class AuthenticationController {
 		textFirstNameOfUser.setStroke(Color.BLACK);
 		textFirstNameOfUser.visibleProperty().set(false);
 		
+		
 		Text textLastNameOfUser = new Text(
 				lastNameOfUser != null ? lastNameOfUser : "");
 		textLastNameOfUser.setFont(new Font(108.0));
@@ -279,16 +281,12 @@ public class AuthenticationController {
 	}
 
 	Rectangle createInputTextBackgroundRectangle() {
-		// rounded rectangular background 
 		Rectangle background = new Rectangle(SCENE_WIDTH, BACKGROUND_RECT_HEIGHT);
 		background.setX(0);
 		background.setY(0);
 		background.setArcHeight(15);
 		background.setArcWidth(15);
-		//background.setFill(Color.rgb(0, 0, 0, .55));
 		background.setFill(Color.rgb(160, 160, 160, OPACITY_LEVEL));
-		background.setStrokeWidth(1.5);
-		background.setStroke(FOREGROUND_COLOR_FOR_INPUT_CONTROLS);
 		return background;
 	}
 	
@@ -429,6 +427,13 @@ public class AuthenticationController {
 			throw new RuntimeException("Cannot load image", e);
 		}
 		
+		Text applicationNameText = new Text(MainApp.APPLICATION_NAME);
+		applicationNameText.setFont(new Font(32.0));
+		applicationNameText.setFill(WELCOME_TEXT_FILL_COLOR);
+		applicationNameText.setOpacity(OPACITY_LEVEL);
+		applicationNameText.setStroke(Color.BLACK);
+		//applicationNameText.visibleProperty().set(false);
+		
 		TextField userName = createUsernameText();
 		addUsernameInputToGridPane(gridpaneX, userName);
 		
@@ -478,7 +483,7 @@ public class AuthenticationController {
 		});
 
 		this.formLayout = new VBox(10);
-		this.formLayout.getChildren().addAll(imageView, stackPane);
+		this.formLayout.getChildren().addAll(applicationNameText, imageView, stackPane);
 		
 		// Create a StackPane and put the entire dialog content in it.
 		// We will stack welcome text on top later when the user has
