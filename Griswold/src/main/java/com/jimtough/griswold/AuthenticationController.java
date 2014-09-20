@@ -47,6 +47,9 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.CycleMethod;
+import javafx.scene.paint.LinearGradient;
+import javafx.scene.paint.Stop;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
@@ -65,6 +68,8 @@ public class AuthenticationController {
 	// all text, borders, svg paths will use white
 	private static final Color FOREGROUND_COLOR_FOR_INPUT_CONTROLS = 
 			Color.rgb(255, 255, 255, .9);
+	
+	private static final Color WELCOME_TEXT_FILL_COLOR = Color.rgb(255, 153, 51);
 
 	private static final int SCENE_WIDTH = 640;
 	private static final int SCENE_HEIGHT = 650;
@@ -130,26 +135,43 @@ public class AuthenticationController {
 		VBox welcomeTextVBox = new VBox(20);
 
 		welcomeTextVBox.setAlignment(Pos.CENTER);
-		
+
 		Text textWelcome = new Text("Welcome");
-		textWelcome.setFont(new Font(120.0));
-		textWelcome.setFill(Color.MAGENTA);
+		textWelcome.setFont(new Font(132.0));
+		textWelcome.setFill(WELCOME_TEXT_FILL_COLOR);
 		textWelcome.setOpacity(1.0);
-		textWelcome.visibleProperty().set(false);
 		textWelcome.setStroke(Color.BLACK);
+		textWelcome.visibleProperty().set(false);
+
+		LinearGradient linearGradient = new LinearGradient(
+				0, 
+				0, 
+				0, 
+				1, 
+				true, 
+				CycleMethod.NO_CYCLE,
+				//new Stop(0.1, Color.rgb(255, 200, 0, 0.784)),
+				//new Stop(1.0, Color.rgb(0, 0, 0, 0.784))
+				//new Stop(0.1, Color.rgb(83, 133, 166, 0.784)),
+				new Stop(0.1, Color.rgb(101, 219, 219)),
+				new Stop(0.5, Color.CYAN),
+				new Stop(1.0, Color.rgb(0, 0, 0))
+			);
 		
 		Text textFirstNameOfUser = new Text(
 				firstNameOfUser != null ? firstNameOfUser : "");
-		textFirstNameOfUser.setFont(new Font(96.0));
-		textFirstNameOfUser.setFill(Color.MAGENTA);
+		textFirstNameOfUser.setFont(new Font(108.0));
+		textFirstNameOfUser.setFill(linearGradient);
 		textFirstNameOfUser.setOpacity(0.0);
+		textFirstNameOfUser.setStroke(Color.BLACK);
 		textFirstNameOfUser.visibleProperty().set(false);
 		
 		Text textLastNameOfUser = new Text(
 				lastNameOfUser != null ? lastNameOfUser : "");
-		textLastNameOfUser.setFont(new Font(96.0));
-		textLastNameOfUser.setFill(Color.MAGENTA);
+		textLastNameOfUser.setFont(new Font(108.0));
+		textLastNameOfUser.setFill(linearGradient);
 		textLastNameOfUser.setOpacity(0.0);
+		textLastNameOfUser.setStroke(Color.BLACK);
 		textLastNameOfUser.visibleProperty().set(false);
 
 		welcomeTextVBox.getChildren().addAll(
@@ -221,11 +243,12 @@ public class AuthenticationController {
 			logger.trace("namesFadeInTrans finished");
 		});
 
-		final Duration welcomeTextVBoxFadeOutDur = Duration.millis(3000);
+		final Duration welcomeTextVBoxFadeOutDur = Duration.millis(2000);
 		FadeTransition welcomeTextVBoxFadeOutTrans = new FadeTransition(welcomeTextVBoxFadeOutDur);
 		welcomeTextVBoxFadeOutTrans.setNode(welcomeTextVBox);
 		welcomeTextVBoxFadeOutTrans.setFromValue(1.0);
 		welcomeTextVBoxFadeOutTrans.setToValue(0.0);
+		welcomeTextVBoxFadeOutTrans.setDelay(Duration.millis(2000));
 		
 		PauseTransition finalPauseT = new PauseTransition(Duration.millis(1000));
 		finalPauseT.setOnFinished((actionEvent) -> {
