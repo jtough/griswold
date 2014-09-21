@@ -436,7 +436,7 @@ public class MainController {
 		});
 
 		Button bMonitorAppAlpha = createToolbarButton(
-				SVG_CLOCK_FORWARD, "Monitor App Alpha");
+				SVG_CLOCK_FORWARD, "Monitor " + MainApp.APP_ALPHA_NAME);
 		bMonitorAppAlpha.setOnAction(actionEvent -> {
 			try {
 				this.toolbar.disableProperty().set(true);
@@ -447,7 +447,7 @@ public class MainController {
 		});
 
 		Button bMonitorAppBeta = createToolbarButton(
-				SVG_LIGHTBULB_B, "Monitor App Beta");
+				SVG_LIGHTBULB_B, "Monitor " + MainApp.APP_BETA_NAME);
 		bMonitorAppBeta.setOnAction(actionEvent -> {
 			try {
 				this.toolbar.disableProperty().set(true);

@@ -21,6 +21,9 @@ public class MainApp extends Application {
 
 	public static final String APPLICATION_NAME = "Project Griswold";
 	
+	public static final String APP_ALPHA_NAME = "App Alpha";
+	public static final String APP_BETA_NAME = "App Beta";
+	
 	private NavigationController navController;
 	private MainController mainController;
 	private AuthenticationController authController;

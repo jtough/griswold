@@ -6,6 +6,7 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.jimtough.griswold.MainApp;
 import com.jimtough.griswold.beans.AppBetaStatus;
 import com.jimtough.griswold.beans.GenericStatusCode;
 import com.jimtough.griswold.notification.NotificationCategory;
@@ -142,8 +143,8 @@ public class AppBetaStatusUpdater
 		if (worstStatus == null) {
 			return null;
 		} else if (worstStatus.equals(GenericStatusCode.NORMAL)) {
-			final String messageText = "All instances of 'App Beta' " + 
-					"appear to be operating normally";
+			final String messageText = "All instances of " +
+					MainApp.APP_BETA_NAME + "appear to be operating normally";
 			return new NotificationMessage(
 					messageText, 
 					NotificationImportance.TRIVIAL, 
@@ -154,7 +155,8 @@ public class AppBetaStatusUpdater
 			NotificationCategory category;
 			NotificationIcon icon;
 			final String messageText = abnormalStatusCount + 
-					" instances of 'App Beta' are in an abnormal state. " + 
+					" instances of " + MainApp.APP_BETA_NAME + 
+					" are in an abnormal state. " +
 					"Most severe status is " + worstStatus.toString() + ".";
 			if (worstStatus.ordinal() <= GenericStatusCode.WARNING.ordinal()) {
 				importance = NotificationImportance.NORMAL;
