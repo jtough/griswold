@@ -111,7 +111,7 @@ public class AppBetaStatusUpdater
 		
 		for (AppBetaStatus abs : ol) {
 			abs.setLastUpdatedDateTime(DateTime.now());
-			randomlyChangeGenericStatusCode(abs);
+			//randomlyChangeGenericStatusCode(abs);
 		}
 		
 		if (sortColumn != null && sortType != null) {
@@ -150,6 +150,15 @@ public class AppBetaStatusUpdater
 					NotificationImportance.TRIVIAL, 
 					NotificationCategory.INFO_POSITIVE, 
 					NotificationIcon.CHECKMARK);
+		} else if (worstStatus.equals(GenericStatusCode.UNKNOWN)) {
+			final String messageText = "No problems detected on any " +
+					MainApp.APP_BETA_NAME + " instances so far. " + 
+					"Status of some instances has not been determined yet.";
+			return new NotificationMessage(
+					messageText, 
+					NotificationImportance.TRIVIAL, 
+					NotificationCategory.INFO_NEUTRAL,
+					NotificationIcon.INFO);
 		} else {
 			NotificationImportance importance;
 			NotificationCategory category;

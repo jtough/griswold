@@ -10,9 +10,8 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -26,6 +25,7 @@ import javafx.util.Callback;
 import com.jimtough.griswold.GenericAppStatusTableCell;
 import com.jimtough.griswold.beans.AppAlphaStatus;
 import com.jimtough.griswold.beans.AppBetaStatus;
+import com.jimtough.griswold.beans.GenericStatusCode;
 
 /**
  * Methods to aid in creating the TableView objects for this application
@@ -173,14 +173,67 @@ public class TableViewCreationUtilities {
 			public TableRow<AppBetaStatus> call(TableView<AppBetaStatus> tableView) {
 				final TableRow<AppBetaStatus> row = new TableRow<>();
 				final ContextMenu contextMenu = new ContextMenu();
-				final MenuItem removeMenuItem = new MenuItem("Remove (not functional yet)");
-				removeMenuItem.setOnAction(new EventHandler<ActionEvent>() {
-					@Override
-					public void handle(ActionEvent event) {
-						tv.getItems().remove(row.getItem());
-					}
+				
+				Menu changeStatusMenu = new Menu("Manually Change Status");
+				MenuItem offlineMenuItem = new MenuItem("Offline");
+				MenuItem errorMenuItem = new MenuItem("Error");
+				MenuItem warningMenuItem = new MenuItem("Warning");
+				MenuItem unknownMenuItem = new MenuItem("Unknown");
+				MenuItem normalMenuItem = new MenuItem("Normal");
+				
+				changeStatusMenu.getItems().addAll(
+						offlineMenuItem,
+						errorMenuItem,
+						warningMenuItem,
+						unknownMenuItem,
+						normalMenuItem);
+
+				offlineMenuItem.setOnAction((actionEvent) -> {
+					AppBetaStatus item = row.getItem();
+					item.setStatusCode(GenericStatusCode.OFFLINE);
+					logger.info("Manually set item " + item.getHostname() +
+							" to " + GenericStatusCode.OFFLINE);
 				});
-				contextMenu.getItems().add(removeMenuItem);
+
+				errorMenuItem.setOnAction((actionEvent) -> {
+					AppBetaStatus item = row.getItem();
+					item.setStatusCode(GenericStatusCode.ERROR);
+					logger.info("Manually set item " + item.getHostname() +
+							" to " + GenericStatusCode.ERROR);
+				});
+
+				warningMenuItem.setOnAction((actionEvent) -> {
+					AppBetaStatus item = row.getItem();
+					item.setStatusCode(GenericStatusCode.WARNING);
+					logger.info("Manually set item " + item.getHostname() +
+							" to " + GenericStatusCode.WARNING);
+				});
+
+				unknownMenuItem.setOnAction((actionEvent) -> {
+					AppBetaStatus item = row.getItem();
+					item.setStatusCode(GenericStatusCode.UNKNOWN);
+					logger.info("Manually set item " + item.getHostname() +
+							" to " + GenericStatusCode.UNKNOWN);
+				});
+
+				normalMenuItem.setOnAction((actionEvent) -> {
+					AppBetaStatus item = row.getItem();
+					item.setStatusCode(GenericStatusCode.NORMAL);
+					logger.info("Manually set item " + item.getHostname() +
+							" to " + GenericStatusCode.NORMAL);
+				});
+				
+				//final MenuItem removeMenuItem = new MenuItem("Remove (not functional yet)");
+				//removeMenuItem.setOnAction(new EventHandler<ActionEvent>() {
+				//	@Override
+				//	public void handle(ActionEvent event) {
+				//		tv.getItems().remove(row.getItem());
+				//	}
+				//});
+				contextMenu.getItems().addAll(
+						//removeMenuItem,
+						changeStatusMenu);
+				
 				// Set context menu on row, but use a binding to make it only show for non-empty rows:
 				row.contextMenuProperty().bind(
 						Bindings.when(row.emptyProperty())
