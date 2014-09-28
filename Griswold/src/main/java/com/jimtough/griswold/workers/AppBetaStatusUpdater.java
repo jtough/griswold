@@ -144,7 +144,7 @@ public class AppBetaStatusUpdater
 			return null;
 		} else if (worstStatus.equals(GenericStatusCode.NORMAL)) {
 			final String messageText = "All instances of " +
-					MainApp.APP_BETA_NAME + "appear to be operating normally";
+					MainApp.APP_BETA_NAME + " appear to be operating normally";
 			return new NotificationMessage(
 					messageText, 
 					NotificationImportance.TRIVIAL, 
