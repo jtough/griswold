@@ -124,7 +124,7 @@ public class AuthenticatedUserInfoMessageSource
 	}
 
 	@Override
-	public NotificationMessage offerMessage() {
+	public NotificationMessage peek() {
 		if (this.messagePool.isEmpty()) {
 			return null;
 		}
@@ -133,9 +133,8 @@ public class AuthenticatedUserInfoMessageSource
 	}
 
 	@Override
-	public void takeMessage(NotificationMessage notificationMessage) {
-		// TODO Auto-generated method stub
-		
+	public NotificationMessage take() {
+		return peek();
 	}
 
 }

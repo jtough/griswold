@@ -7,21 +7,23 @@ package com.jimtough.griswold.notification;
 public interface NotificationMessageSource {
 
 	/**
-	 * Offer a {@code NotificationMessage}, if any are available, to the
-	 * caller. If the caller wants this message, it will invoke the
-	 * {@code takeMessage()} method to indicate that the message has been
-	 * accepted and consumed.
+	 * Peek at the currently offered {@code NotificationMessage} from this
+	 * source, if any are available. If the caller wants this message, it 
+	 * must invoke the {@code take()} method to indicate that the message
+	 * has been taken and consumed.
 	 * @return {@code NotificationMessage}, or null if none are available
 	 */
-	NotificationMessage offerMessage();
+	NotificationMessage peek();
 
 	/**
-	 * Informs the message source that a 'peeked' message will be taken
-	 * (typically to be displayed). This gives the source a chance to
-	 * remove that message, if it has any sort of queuing mechanism.
-	 * The message source can make this a no-op method if there is no
-	 * action to be taken when a message is taken.
+	 * Take the currently offered {@code NotificationMessage} from this
+	 * source, if any are available. Invoking this method signals that
+	 * the message has been taken and consumed by the caller.
+	 * The implementing class may or may not need to take some action
+	 * when {@code take()} is invoked, such as removing the message from
+	 * and internal queue. The implementing class may make this a no-op
+	 * method if there is no action required when a message is taken.
 	 */
-	void takeMessage(NotificationMessage notificationMessage);
+	NotificationMessage take();
 	
 }

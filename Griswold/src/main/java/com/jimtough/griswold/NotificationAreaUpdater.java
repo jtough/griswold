@@ -73,37 +73,36 @@ public class NotificationAreaUpdater {
 
 	NotificationMessage selectMessagePreferringHighestImportance(
 			List<NotificationMessageSource> messageSourceList) {
-		NotificationMessage messageToUse = null;
+		NotificationMessageSource selectedSource = null;
 		for (NotificationMessageSource source : messageSourceList) {
-			NotificationMessage notificationMessage = source.offerMessage();
-			if (notificationMessage == null) {
+			if (source.peek() == null) {
 				logger.info("Null message offered");
-			} else if (messageToUse == null) {
-				messageToUse = notificationMessage;
+			} else if (selectedSource == null) {
+				selectedSource = source;
 				logger.info("Found first offered message: [" +
-						messageToUse.getMessageText() + "]");
+						selectedSource.peek().getMessageText() + "]");
 			} else {
-				if (messageToUse.getImportance().ordinal() < 
-						notificationMessage.getImportance().ordinal()) {
+				if (selectedSource.peek().getImportance().ordinal() < 
+						source.peek().getImportance().ordinal()) {
 					logger.info("Replacing less important message: [" +
-							messageToUse.getMessageText() + 
+							selectedSource.peek().getMessageText() + 
 							"] with more important message: [" +
-							notificationMessage.getMessageText() + "]");
-					messageToUse = notificationMessage;
-				} else if (messageToUse.getImportance().ordinal() == 
-						notificationMessage.getImportance().ordinal()) {
+							source.peek().getMessageText() + "]");
+					selectedSource = source;
+				} else if (selectedSource.peek().getImportance().ordinal() == 
+						source.peek().getImportance().ordinal()) {
 					boolean replaceWithNewMessage = random.nextBoolean();
 					if (replaceWithNewMessage) {
 						logger.info("Randomly decided to replace message [" +
-								messageToUse.getMessageText() + 
+								selectedSource.peek().getMessageText() + 
 								"] with equally important message: [" +
-								notificationMessage.getMessageText() + "]");
-						messageToUse = notificationMessage;
+								source.peek().getMessageText() + "]");
+						selectedSource = source;
 					} else {
 						logger.info("Randomly decided to keep message [" +
-								messageToUse.getMessageText() + 
+								selectedSource.peek().getMessageText() + 
 								"] because equally important message: [" +
-								notificationMessage.getMessageText() + 
+								source.peek().getMessageText() + 
 								"] lost the coin toss");
 					}
 				} else {
@@ -111,7 +110,7 @@ public class NotificationAreaUpdater {
 				}
 			}
 		}
-		return messageToUse;
+		return selectedSource.take();
 	}
 	
 	public synchronized void rotateText() {
@@ -120,10 +119,6 @@ public class NotificationAreaUpdater {
 			logger.warn("rotateText() | No message sources have been set");
 			this.notificationAreaTextStringWrapper.set("");
 		}
-		//int messageSourceIndex = random.nextInt(this.messageSourceList.size());
-		//NotificationMessageSource messageSource =
-		//		this.messageSourceList.get(messageSourceIndex);
-		//NotificationMessage message = messageSource.getMessage();
 		
 		NotificationMessage message = 
 				selectMessagePreferringHighestImportance(messageSourceList);

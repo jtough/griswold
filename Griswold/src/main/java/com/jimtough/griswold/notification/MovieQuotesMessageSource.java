@@ -34,7 +34,7 @@ public class MovieQuotesMessageSource implements NotificationMessageSource {
 	}
 
 	@Override
-	public NotificationMessage offerMessage() {
+	public NotificationMessage peek() {
 		if (currentQuoteIndex >= movieQuoteList.size()) {
 			currentQuoteIndex = 0;
 		}
@@ -47,8 +47,10 @@ public class MovieQuotesMessageSource implements NotificationMessageSource {
 	}
 
 	@Override
-	public void takeMessage(NotificationMessage notificationMessage) {
+	public NotificationMessage take() {
+		NotificationMessage message = peek();
 		currentQuoteIndex++;
+		return message;
 	}
 
 }

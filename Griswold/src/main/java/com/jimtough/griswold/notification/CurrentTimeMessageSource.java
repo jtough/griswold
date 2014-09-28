@@ -14,7 +14,7 @@ public class CurrentTimeMessageSource implements NotificationMessageSource {
 			DateTimeFormat.forPattern("HH:mm:ss z");
 
 	@Override
-	public NotificationMessage offerMessage() {
+	public NotificationMessage peek() {
 		final String messageText = 
 				"The current time is: " + 
 				CURRENT_TIME_FORMATTER.print(DateTime.now());
@@ -26,8 +26,8 @@ public class CurrentTimeMessageSource implements NotificationMessageSource {
 	}
 
 	@Override
-	public void takeMessage(NotificationMessage notificationMessage) {
-		// nothing to do here
+	public NotificationMessage take() {
+		return peek();
 	}
 
 }

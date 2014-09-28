@@ -129,7 +129,7 @@ public class AppBetaStatusUpdater
 	}
 
 	@Override
-	public synchronized NotificationMessage offerMessage() {
+	public synchronized NotificationMessage peek() {
 		GenericStatusCode worstStatus = GenericStatusCode.NORMAL;
 		int abnormalStatusCount = 0;
 		for (AppBetaStatus abs : ol) {
@@ -177,8 +177,8 @@ public class AppBetaStatusUpdater
 	}
 
 	@Override
-	public void takeMessage(NotificationMessage notificationMessage) {
-		// do nothing
+	public NotificationMessage take() {
+		return peek();
 	}
 	
 }
