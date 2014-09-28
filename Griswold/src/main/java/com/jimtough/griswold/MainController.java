@@ -27,6 +27,7 @@ import javafx.animation.PauseTransition;
 import javafx.animation.ScaleTransition;
 import javafx.animation.SequentialTransition;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -34,6 +35,7 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
 import javafx.concurrent.ScheduledService;
 import javafx.concurrent.Task;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
@@ -41,6 +43,7 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckMenuItem;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
@@ -49,6 +52,7 @@ import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.CellDataFeatures;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
@@ -60,6 +64,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.MouseButton;
+import javafx.scene.input.PickResult;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Border;
@@ -730,7 +735,6 @@ public class MainController {
 				new SortedList<AppBetaStatus>(observableList);
 		
 		TableView<AppBetaStatus> tv = new TableView<AppBetaStatus>(sortedList);
-		//tv.setItems(observableList);
 
 		// bind the sortedList comparator to the TableView comparator
 		sortedList.comparatorProperty().bind(tv.comparatorProperty());
@@ -744,6 +748,11 @@ public class MainController {
 					// TODO Do something with the selected item
 					logger.info("Double-clicked on: " + status);
 				}
+			//} else if (event.getButton().equals(MouseButton.SECONDARY)) {
+			//	PickResult pickResult = event.getPickResult();
+			//	Node n = pickResult.getIntersectedNode();
+			//	logger.info("Right-clicked on node: " + n.toString());
+			//	logger.info("Node object type: " + n.getClass().getSimpleName());
 			}
 		});
 		
@@ -784,6 +793,31 @@ public class MainController {
 		
 		tv.getColumns().setAll(tableColumnList);
 		
+		// This is needed to add Context Menu support.
+		// Loosely based on example from here: 
+		// 		https://gist.github.com/james-d/7758918
+		tv.setRowFactory(new Callback<TableView<AppBetaStatus>, TableRow<AppBetaStatus>>() {
+			@Override  
+			public TableRow<AppBetaStatus> call(TableView<AppBetaStatus> tableView) {
+				final TableRow<AppBetaStatus> row = new TableRow<>();
+				final ContextMenu contextMenu = new ContextMenu();
+				final MenuItem removeMenuItem = new MenuItem("Remove (not functional yet)");
+				removeMenuItem.setOnAction(new EventHandler<ActionEvent>() {
+					@Override
+					public void handle(ActionEvent event) {
+						tv.getItems().remove(row.getItem());
+					}
+				});
+				contextMenu.getItems().add(removeMenuItem);
+				// Set context menu on row, but use a binding to make it only show for non-empty rows:
+				row.contextMenuProperty().bind(
+						Bindings.when(row.emptyProperty())
+						.then((ContextMenu)null)
+						.otherwise(contextMenu)
+						);
+				return row;
+			}
+		});
 		
 		// selection listening
 		tv.getSelectionModel().selectedItemProperty().addListener(
