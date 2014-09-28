@@ -120,11 +120,6 @@ public class TableViewCreationUtilities {
 					// TODO Do something with the selected item
 					logger.info("Double-clicked on: " + status);
 				}
-			//} else if (event.getButton().equals(MouseButton.SECONDARY)) {
-			//	PickResult pickResult = event.getPickResult();
-			//	Node n = pickResult.getIntersectedNode();
-			//	logger.info("Right-clicked on node: " + n.toString());
-			//	logger.info("Node object type: " + n.getClass().getSimpleName());
 			}
 		});
 		
@@ -230,9 +225,14 @@ public class TableViewCreationUtilities {
 				//		tv.getItems().remove(row.getItem());
 				//	}
 				//});
+				
+				MenuItem suppressAlertsMenuItem = new MenuItem("Suppress Alerts");
+				suppressAlertsMenuItem.disableProperty().set(true);
+				
 				contextMenu.getItems().addAll(
 						//removeMenuItem,
-						changeStatusMenu);
+						changeStatusMenu,
+						suppressAlertsMenuItem);
 				
 				// Set context menu on row, but use a binding to make it only show for non-empty rows:
 				row.contextMenuProperty().bind(

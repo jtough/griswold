@@ -2,7 +2,10 @@ package com.jimtough.griswold;
 
 import static com.jimtough.griswold.SVGStringConstants.*;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -193,22 +196,36 @@ public class MainController {
 		return observableAppAlphaStatusList;
 	}
 	
-	ObservableList<AppBetaStatus> createObservableAppBetaStatusList() {
+	// TODO Javadoc
+	List<String> readAppBetaHostnamesFromFile() throws IOException {
+		final List<String> hostnameList = new ArrayList<>();
+		InputStream is = this.getClass().getResourceAsStream(
+				"/app-beta-hostname-list.txt");
+		BufferedReader br = new BufferedReader(new InputStreamReader(is));
+		String s;
+		while ((s = br.readLine()) != null) {
+			hostnameList.add(s);
+		}
+		if (hostnameList.isEmpty()) {
+			throw new IllegalStateException("No hostnames loaded");
+		}
+		return hostnameList;
+	}
+	
+	ObservableList<AppBetaStatus> createObservableAppBetaStatusList() 
+			throws IOException {
 		observableAppBetaStatusList = FXCollections.observableArrayList();
 		
+		List<String> hostnameList = readAppBetaHostnamesFromFile();
 		List<AppBetaStatus> sampleStatusList = new ArrayList<AppBetaStatus>();
 		Random r = new Random();
-		for (int i=0; i<200; i++) {
-			//int exactlyFiveDays =  432000000;
-			//int oneHourAndOneMinuteAndOneMillisecond = 3660001;
+		for (String hostname : hostnameList) {
 			long FIVE_HUNDRED_DAYS = 43200000000L; // 500 days max
 			long randomDurationMilliseconds = Math.abs(r.nextLong()) % FIVE_HUNDRED_DAYS;
-			//int randomDurationMilliseconds = r.nextInt(432000000); // 5 days max
-			AppBetaStatus abs = new AppBetaStatus("host-" + i + ".jimtough.com");
+			AppBetaStatus abs = new AppBetaStatus(hostname);
 			abs.setLastUpdatedDateTime(DateTime.now());
 			abs.setStatusCode(GenericStatusCode.NORMAL);
 			abs.setUptime(new org.joda.time.Duration(randomDurationMilliseconds));
-			//abs.setUptime(new org.joda.time.Duration(exactlyFiveDays + oneHourAndOneMinuteAndOneMillisecond));
 			sampleStatusList.add(abs);
 		}
 		
@@ -279,29 +296,6 @@ public class MainController {
 		this.menuBar.getMenus().addAll(fileMenu, cameraMenu, alarmMenu);
 		this.menuBar.prefWidthProperty().bind(this.primaryStage.widthProperty());
 		return this.menuBar;
-	}
-
-	private void transitionOldToNewContentA(
-			final HBox container,
-			final Node newContent) {
-		FadeTransition fadeOut = 
-				new FadeTransition(javafx.util.Duration.millis(200), container);
-		fadeOut.setFromValue(1.0);
-		fadeOut.setToValue(0.0);
-		
-		fadeOut.setOnFinished(actionEvent -> {
-			container.getChildren().clear();
-			container.getChildren().add(newContent);
-		});
-		
-		FadeTransition fadeIn = 
-				new FadeTransition(javafx.util.Duration.millis(200), container);
-		fadeIn.setFromValue(0.0);
-		fadeIn.setToValue(1.0);
-		
-		SequentialTransition seqTransition = 
-				new SequentialTransition(fadeOut, fadeIn);
-		seqTransition.play();
 	}
 
 	private void transitionOldToNewContentB(
@@ -462,7 +456,7 @@ public class MainController {
 		});
 
 		Button bCycleQuote = createToolbarButton(
-				SVG_DOUBLE_QUOTE, "Cycle to next movie quote");
+				SVG_DOUBLE_QUOTE, "Cycle to next notification message");
 		bCycleQuote.setOnAction(actionEvent -> {
 			try {
 				this.toolbar.disableProperty().set(true);
