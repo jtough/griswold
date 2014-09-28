@@ -382,8 +382,12 @@ public class MainController {
 				75,
 				false, 
 				CycleMethod.REFLECT, 
-				new Stop(0.0f, Color.rgb(0, 255, 0, 0.784)),
-				new Stop(1.0f, Color.rgb(0, 0, 0, 0.784)));
+				//new Stop(0.0, Color.rgb(0, 255, 0, 0.784)),
+				//new Stop(1.0, Color.rgb(0, 0, 0, 0.784)));
+				new Stop(0.0, Color.rgb(120, 120, 120, 0.784)),
+				new Stop(0.3, Color.rgb(160, 160, 160, 0.784)),
+				new Stop(0.7, Color.rgb(180, 180, 180, 0.784)),
+				new Stop(1.0, Color.rgb(120, 120, 120, 0.784)));
 		
 		Button b = new Button();
 		b.setMinHeight(50);
@@ -391,7 +395,7 @@ public class MainController {
 		b.setMaxHeight(50);
 		b.setMaxWidth(75);
 		b.setBorder(new Border(
-				new BorderStroke(TOOLBAR_BACKGROUND_COLOR, BorderStrokeStyle.SOLID, null, null)));
+				new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, null, null)));
 		b.setBackground(new Background(
 				new BackgroundFill(linearGradient, null, null)));
 		Tooltip tt = new Tooltip(tooltipText);
