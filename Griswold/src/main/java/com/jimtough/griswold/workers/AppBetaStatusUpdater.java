@@ -1,6 +1,13 @@
 package com.jimtough.griswold.workers;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -19,6 +26,8 @@ import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.concurrent.ScheduledService;
 import javafx.concurrent.Task;
+import javafx.scene.chart.PieChart;
+import javafx.scene.chart.PieChart.Data;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.TableView;
@@ -37,6 +46,7 @@ public class AppBetaStatusUpdater
 			LoggerFactory.getLogger(AppBetaStatusUpdater.class);
 
 	private final ObservableList<AppBetaStatus> ol;
+	private final ObservableList<PieChart.Data> statusPieChartData;
 	private final TableView<AppBetaStatus> tv;
 	private final Random random = new Random();
 
@@ -47,6 +57,7 @@ public class AppBetaStatusUpdater
 				try {
 					logger.trace("Invoking updateStatusObjectList()...");
 					updateStatusObjectList();
+					updateStatusPieChartData();
 					logger.trace("...updateStatusObjectList() complete");
 				} catch (RuntimeException re) {
 					logger.error("Exception when updating status data", re);
@@ -58,14 +69,19 @@ public class AppBetaStatusUpdater
 	
 	public AppBetaStatusUpdater(
 			final ObservableList<AppBetaStatus> ol,
+			final ObservableList<PieChart.Data> statusPieChartData,
 			final TableView<AppBetaStatus> tv) {
 		if (ol == null) {
 			throw new IllegalArgumentException("ol cannot be null");
+		}
+		if (statusPieChartData == null) {
+			throw new IllegalArgumentException("statusPieChartData cannot be null");
 		}
 		if (tv == null) {
 			throw new IllegalArgumentException("tv cannot be null");
 		}
 		this.ol = ol;
+		this.statusPieChartData = statusPieChartData;
 		this.tv = tv;
 	}
 
@@ -90,6 +106,42 @@ public class AppBetaStatusUpdater
 			// 5% chance of switching back to a normal status code
 			if (x < 500) {
 				abs.setStatusCode(GenericStatusCode.NORMAL);
+			}
+		}
+	}
+	
+	private void updateStatusPieChartData() {
+		Map<GenericStatusCode,AtomicInteger> statusToCountMap =
+				new LinkedHashMap<GenericStatusCode,AtomicInteger>();
+		Map<GenericStatusCode,Data> statusToDataMap =
+				new HashMap<GenericStatusCode,Data>();
+		// Initialize all status code counts to zero and map all enums
+		// to their corresponding Data object
+		for (GenericStatusCode curEnum : GenericStatusCode.values()) {
+			statusToCountMap.put(curEnum, new AtomicInteger(0));
+			for (Data data : this.statusPieChartData) {
+				if (curEnum.displayString.equals(data.getName())) {
+					statusToDataMap.put(curEnum, data);
+					break;
+				}
+			}
+		}
+		// Now collect the data
+		for (AppBetaStatus abs : ol) {
+			GenericStatusCode status = abs.getStatusCode();
+			if (status != null) {
+				statusToCountMap.get(status).incrementAndGet();
+			}
+		}
+		// Finally, update the pie chart data
+		for (Entry<GenericStatusCode,AtomicInteger> entry 
+				: statusToCountMap.entrySet()) {
+			Data data = statusToDataMap.get(entry.getKey());
+			if (data != null) {
+				data.setPieValue(entry.getValue().get());
+			} else {
+				logger.error("No pie chart data object found for " +
+						entry.getKey());
 			}
 		}
 	}

@@ -39,11 +39,15 @@ import javafx.concurrent.ScheduledService;
 import javafx.concurrent.Task;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
+import javafx.geometry.Side;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.chart.PieChart;
+import javafx.scene.chart.PieChart.Data;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckMenuItem;
+import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
@@ -61,6 +65,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Border;
@@ -128,10 +133,13 @@ public class MainController {
 	private TableView<Person> tvPerson = null;
 	private TableView<AppAlphaStatus> tvAlpha = null;
 	private TableView<AppBetaStatus> tvBeta = null;
+	private HBox chartsArea = null;
+	private PieChart appBetaStatusPieChart = null;
 	
 	private ObservableList<Person> observablePersonList;
 	private ObservableList<AppAlphaStatus> observableAppAlphaStatusList;
 	private ObservableList<AppBetaStatus> observableAppBetaStatusList;
+	private ObservableList<PieChart.Data> observableAppBetaPieChartData;
 	
 	/**
 	 * Constructor
@@ -162,6 +170,7 @@ public class MainController {
 	Scene createScene(final Group rootNode) {
 		this.scene = new Scene(rootNode, 300, 250);
 		this.scene.setFill(Color.LIGHTGREY);
+		this.scene.getStylesheets().add("chart-styles.css");
 		return this.scene;
 	}
 	
@@ -235,6 +244,16 @@ public class MainController {
 		return observableAppBetaStatusList;
 	}
 	
+	ObservableList<PieChart.Data> createObservableAppBetaPieChartData() {
+		observableAppBetaPieChartData = FXCollections.observableArrayList();
+		// Initialize all status code counts to zero
+		for (GenericStatusCode curEnum : GenericStatusCode.values()) {
+			Data data = new Data(curEnum.displayString, 0.0D);
+			observableAppBetaPieChartData.add(data);
+		}
+		return observableAppBetaPieChartData;
+	}
+	
 	MenuBar createMenuBar(final NavigationController navController) {
 		this.menuBar = new MenuBar();
 
@@ -298,6 +317,37 @@ public class MainController {
 		return this.menuBar;
 	}
 
+	PieChart createAppBetaStatusPieChart(ObservableList<PieChart.Data> dataList) {
+		if (dataList == null) {
+			throw new IllegalArgumentException("data cannot be null");
+		}
+		final PieChart chart = new PieChart(dataList);
+		chart.setCenterShape(true);
+		chart.setLegendVisible(true);
+		chart.setLegendSide(Side.BOTTOM);
+		chart.setLabelsVisible(false);
+		chart.setTitle(null);
+		//--------------------------------------------------------
+		// Set text to display when a pie slice is clicked
+		final Label caption = new Label("");
+		caption.setTextFill(Color.DARKORANGE);
+		caption.setStyle("-fx-font: 24 arial;");
+		for (final PieChart.Data data : chart.getData()) {
+			data.getNode().addEventHandler(MouseEvent.MOUSE_PRESSED,
+				new EventHandler<MouseEvent>() {
+					@Override public void handle(MouseEvent e) {
+						logger.info("Mouse clicked on a pie slice");
+						// FIXME The log entry above is appearing, but the caption below is not displayed
+						caption.setTranslateX(e.getSceneX());
+						caption.setTranslateY(e.getSceneY());
+						caption.setText(String.valueOf(data.getPieValue()) + " instances");
+					 }
+				});
+		}		
+		//--------------------------------------------------------
+		return chart;
+	}
+	
 	private void transitionOldToNewContentB(
 			final HBox container,
 			final Node newContent) {
@@ -455,6 +505,17 @@ public class MainController {
 			}
 		});
 
+		Button bCharts = createToolbarButton(
+				SVG_CHARTS, "Charts");
+		bCharts.setOnAction(actionEvent -> {
+			try {
+				this.toolbar.disableProperty().set(true);
+				this.transitionOldToNewContentB(this.middleRightContentArea, this.chartsArea);
+			} finally {
+				this.toolbar.disableProperty().set(false);
+			}
+		});
+
 		Button bCycleQuote = createToolbarButton(
 				SVG_DOUBLE_QUOTE, "Cycle to next notification message");
 		bCycleQuote.setOnAction(actionEvent -> {
@@ -473,6 +534,7 @@ public class MainController {
 		vBox.getChildren().add(bTools);
 		vBox.getChildren().add(bMonitorAppAlpha);
 		vBox.getChildren().add(bMonitorAppBeta);
+		vBox.getChildren().add(bCharts);
 		vBox.getChildren().add(bCycleQuote);
 		vBox.getChildren().add(bExit);
 
@@ -717,7 +779,9 @@ public class MainController {
 			throw new IllegalStateException("observableAppBetaStatusList is null");
 		}
 		this.appBetaStatusUpdater = new AppBetaStatusUpdater(
-				this.observableAppBetaStatusList, this.tvBeta);
+				this.observableAppBetaStatusList, 
+				this.observableAppBetaPieChartData, 
+				this.tvBeta);
 		this.appBetaStatusUpdater.setDelay(new javafx.util.Duration(APP_BETA_STATUS_REFRESH_MILLISECONDS));
 		this.appBetaStatusUpdater.setPeriod(new javafx.util.Duration(APP_BETA_STATUS_REFRESH_MILLISECONDS));
 	}
@@ -738,6 +802,10 @@ public class MainController {
 				createObservableAppAlphaStatusList());
 		tvBeta = tableViewCreationUtilities.createAppBetaStatusTableView(
 				createObservableAppBetaStatusList());
+		chartsArea = new HBox(5);
+		appBetaStatusPieChart = createAppBetaStatusPieChart(
+				createObservableAppBetaPieChartData());
+		chartsArea.getChildren().add(appBetaStatusPieChart);
 		createAppBetaStatusUpdater();
 
 		createNotificationArea();
