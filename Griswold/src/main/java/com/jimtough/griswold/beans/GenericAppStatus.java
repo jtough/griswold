@@ -5,8 +5,10 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
@@ -25,6 +27,8 @@ public abstract class GenericAppStatus {
 	private StringProperty hostname;
 	private final ReadOnlyStringWrapper lastUpdatedString;
 	private final ReadOnlyStringWrapper statusString;
+	private final BooleanProperty suppressAlerts;
+	
 	
 	private GenericStatusCode genericStatusCode;
 	private DateTime lastUpdatedDateTime;
@@ -39,8 +43,9 @@ public abstract class GenericAppStatus {
 					"hostname cannot be null or empty string");
 		}
 		setHostname(hostname);
-		this.statusString = new ReadOnlyStringWrapper("");
 		this.lastUpdatedString = new ReadOnlyStringWrapper("");
+		this.statusString = new ReadOnlyStringWrapper("");
+		this.suppressAlerts = new SimpleBooleanProperty(false);
 		setStatusCode(GenericStatusCode.UNKNOWN);
 	}
 
@@ -123,6 +128,28 @@ public abstract class GenericAppStatus {
 	
 	public ReadOnlyStringProperty lastUpdatedStringProperty() {
 		return lastUpdatedString.getReadOnlyProperty();
+	}
+	
+	//---------------------------------------------------
+	// suppressAlerts accessors
+	public synchronized void setSuppressAlerts(final boolean value) {
+		if (Platform.isFxApplicationThread()) {
+			this.suppressAlerts.set(value);
+		} else {
+			Platform.runLater(() -> {
+				this.suppressAlerts.set(value);
+			});
+		}
+		
+		
+	}
+
+	public synchronized boolean getSuppressAlerts() {
+		return this.suppressAlerts.get();
+	}
+	
+	public BooleanProperty suppressAlertsProperty() {
+		return suppressAlerts;
 	}
 	
 	//---------------------------------------------------

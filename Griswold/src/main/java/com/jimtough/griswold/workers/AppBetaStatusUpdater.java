@@ -1,9 +1,7 @@
 package com.jimtough.griswold.workers;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
@@ -186,9 +184,14 @@ public class AppBetaStatusUpdater
 		int abnormalStatusCount = 0;
 		for (AppBetaStatus abs : ol) {
 			if (!abs.getStatusCode().equals(GenericStatusCode.NORMAL)) {
-				abnormalStatusCount++;
-				if (worstStatus.ordinal() < abs.getStatusCode().ordinal()) {
-					worstStatus = abs.getStatusCode();
+				if (abs.getSuppressAlerts()) {
+					logger.info("Ignoring abnormal status" + 
+							abs.getHostname() + " alerts suppressed");
+				} else {
+					abnormalStatusCount++;
+					if (worstStatus.ordinal() < abs.getStatusCode().ordinal()) {
+						worstStatus = abs.getStatusCode();
+					}
 				}
 			}
 		}

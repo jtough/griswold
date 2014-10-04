@@ -144,6 +144,10 @@ public class TableViewCreationUtilities {
 			}
 		});
 		
+		TableColumn<AppBetaStatus, Boolean> suppressAlertsCol = new TableColumn<>("Suppress Alerts");
+		suppressAlertsCol.setEditable(false);
+		suppressAlertsCol.setCellValueFactory(new PropertyValueFactory<AppBetaStatus,Boolean>("suppressAlerts"));
+		
 		TableColumn<AppBetaStatus, String> lastUpdatedStringCol = new TableColumn<>("Last Updated");
 		lastUpdatedStringCol.setEditable(false);
 		lastUpdatedStringCol.setCellValueFactory(new PropertyValueFactory<AppBetaStatus,String>("lastUpdatedString"));
@@ -155,6 +159,7 @@ public class TableViewCreationUtilities {
 		List<TableColumn<AppBetaStatus,? extends Object>> tableColumnList = new ArrayList<>();
 		tableColumnList.add(hostnameCol);
 		tableColumnList.add(statusStringCol);
+		tableColumnList.add(suppressAlertsCol);
 		tableColumnList.add(lastUpdatedStringCol);
 		tableColumnList.add(uptimeCol);
 		
@@ -226,8 +231,13 @@ public class TableViewCreationUtilities {
 				//	}
 				//});
 				
-				MenuItem suppressAlertsMenuItem = new MenuItem("Suppress Alerts");
-				suppressAlertsMenuItem.disableProperty().set(true);
+				MenuItem suppressAlertsMenuItem = 
+						new MenuItem("Suppress Alerts");
+				suppressAlertsMenuItem.setOnAction((actionEvent) -> {
+					AppBetaStatus item = row.getItem();
+					item.setSuppressAlerts(true);
+					logger.info("Suppressing alerts for " + item.getHostname());
+				});
 				
 				contextMenu.getItems().addAll(
 						//removeMenuItem,
