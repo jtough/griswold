@@ -277,18 +277,18 @@ public class MainController {
 				exitMenuItem
 				);
 
-		// Cameras menu - camera 1, camera 2
-		Menu cameraMenu = new Menu("Cameras");
-		CheckMenuItem cam1MenuItem = new CheckMenuItem("Show Camera 1");
-		cam1MenuItem.setSelected(true);
-		cameraMenu.getItems().add(cam1MenuItem);
+		// Things menu
+		Menu thingsMenu = new Menu("Things");
+		CheckMenuItem thing1MenuItem = new CheckMenuItem("Thing 1");
+		thing1MenuItem.setSelected(true);
+		thingsMenu.getItems().add(thing1MenuItem);
 
-		CheckMenuItem cam2MenuItem = new CheckMenuItem("Show Camera 2");
-		cam2MenuItem.setSelected(true);
-		cameraMenu.getItems().add(cam2MenuItem);
+		CheckMenuItem thing2MenuItem = new CheckMenuItem("Thing 2");
+		thing2MenuItem.setSelected(true);
+		thingsMenu.getItems().add(thing2MenuItem);
 
-		// Alarm menu
-		Menu alarmMenu = new Menu("Alarm");
+		// Stuff menu
+		Menu stuffMenu = new Menu("Stuff");
 
 		// sound or turn alarm off
 		ToggleGroup tGroup = new ToggleGroup();
@@ -299,20 +299,20 @@ public class MainController {
 		stopAlarmItem.setToggleGroup(tGroup);
 		stopAlarmItem.setSelected(true);
 
-		alarmMenu.getItems().addAll(
+		stuffMenu.getItems().addAll(
 				soundAlarmItem, 
 				stopAlarmItem, 
 				new SeparatorMenuItem());
 
-		Menu contingencyPlans = new Menu("Contingent Plans");
+		Menu contingencyPlans = new Menu("Contingency Plans");
 		contingencyPlans.getItems().addAll(
 				new CheckMenuItem("Self Destruct in T minus 50"),
-				new CheckMenuItem("Turn off the coffee machine "),
-				new CheckMenuItem("Run for your lives! "));
+				new CheckMenuItem("Turn off the coffee machine"),
+				new CheckMenuItem("Run for your lives!"));
 
-		alarmMenu.getItems().add(contingencyPlans);
+		stuffMenu.getItems().add(contingencyPlans);
 
-		this.menuBar.getMenus().addAll(fileMenu, cameraMenu, alarmMenu);
+		this.menuBar.getMenus().addAll(fileMenu, thingsMenu, stuffMenu);
 		this.menuBar.prefWidthProperty().bind(this.primaryStage.widthProperty());
 		return this.menuBar;
 	}
