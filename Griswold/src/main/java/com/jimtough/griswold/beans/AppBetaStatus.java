@@ -5,6 +5,8 @@ import org.joda.time.Duration;
 import org.joda.time.Period;
 
 import javafx.application.Platform;
+import javafx.beans.property.ReadOnlyDoubleProperty;
+import javafx.beans.property.ReadOnlyDoubleWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 
@@ -15,6 +17,7 @@ public class AppBetaStatus extends GenericAppStatus {
 	
 	private Duration uptime;
 	private final ReadOnlyStringWrapper uptimeString;
+	private final ReadOnlyDoubleWrapper memoryUsedPercent;
 
 	/**
 	 * Constructor
@@ -24,8 +27,10 @@ public class AppBetaStatus extends GenericAppStatus {
 		super(hostname);
 		this.uptime = new Duration(0);
 		this.uptimeString = new ReadOnlyStringWrapper(this.uptime.toString());
+		this.memoryUsedPercent = new ReadOnlyDoubleWrapper(0.0D);
 	}
-
+	
+	//--------------------------------------
 	// uptime accessors
 	
 	String asString(Duration d) {
@@ -62,6 +67,34 @@ public class AppBetaStatus extends GenericAppStatus {
 	public ReadOnlyStringProperty uptimeStringProperty() {
 		return uptimeString.getReadOnlyProperty();
 	}
+	
+	//--------------------------------------
+	// memoryUsedPercent accessors
+	
+	public synchronized void setMemoryUsedPercent(final double value) {
+		if (value > 1.0D) {
+			throw new IllegalArgumentException("value cannot be greater than 1.0");
+		}
+		if (value < 0.0D) {
+			throw new IllegalArgumentException("value cannot be less than 0.0");
+		}
+		if (Platform.isFxApplicationThread()) {
+			this.memoryUsedPercent.set(value);
+		} else {
+			Platform.runLater(() -> {
+				this.memoryUsedPercent.set(value);
+			});
+		}
+	}
+
+	public synchronized double getMemoryUsedPercent() {
+		return memoryUsedPercent.get();
+	}
+
+	public ReadOnlyDoubleProperty memoryUsedPercentProperty() {
+		return memoryUsedPercent.getReadOnlyProperty();
+	}
+	
 	
 	//--------------------------------------
 

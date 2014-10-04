@@ -18,6 +18,8 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TableColumn.CellDataFeatures;
+import javafx.scene.control.cell.CheckBoxTableCell;
+import javafx.scene.control.cell.ProgressBarTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseButton;
 import javafx.util.Callback;
@@ -144,9 +146,18 @@ public class TableViewCreationUtilities {
 			}
 		});
 		
-		TableColumn<AppBetaStatus, Boolean> suppressAlertsCol = new TableColumn<>("Suppress Alerts");
+		TableColumn<AppBetaStatus,Double> memoryUseCol = 
+				new TableColumn<AppBetaStatus,Double>("Memory Use");
+		memoryUseCol.setCellValueFactory(
+				new PropertyValueFactory<AppBetaStatus, Double>("memoryUsedPercent"));
+		memoryUseCol.setCellFactory(ProgressBarTableCell.<AppBetaStatus> forTableColumn());
+
+		TableColumn<AppBetaStatus, Boolean> suppressAlertsCol = 
+				new TableColumn<>("Suppress");
 		suppressAlertsCol.setEditable(false);
-		suppressAlertsCol.setCellValueFactory(new PropertyValueFactory<AppBetaStatus,Boolean>("suppressAlerts"));
+		suppressAlertsCol.setCellValueFactory(
+				new PropertyValueFactory<AppBetaStatus,Boolean>("suppressAlerts"));
+		suppressAlertsCol.setCellFactory(CheckBoxTableCell.forTableColumn(suppressAlertsCol));
 		
 		TableColumn<AppBetaStatus, String> lastUpdatedStringCol = new TableColumn<>("Last Updated");
 		lastUpdatedStringCol.setEditable(false);
@@ -159,8 +170,9 @@ public class TableViewCreationUtilities {
 		List<TableColumn<AppBetaStatus,? extends Object>> tableColumnList = new ArrayList<>();
 		tableColumnList.add(hostnameCol);
 		tableColumnList.add(statusStringCol);
+		tableColumnList.add(memoryUseCol);
 		tableColumnList.add(suppressAlertsCol);
-		tableColumnList.add(lastUpdatedStringCol);
+		//tableColumnList.add(lastUpdatedStringCol);
 		tableColumnList.add(uptimeCol);
 		
 		tv.getColumns().setAll(tableColumnList);

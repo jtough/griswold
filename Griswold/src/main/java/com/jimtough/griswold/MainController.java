@@ -235,6 +235,7 @@ public class MainController {
 			abs.setLastUpdatedDateTime(DateTime.now());
 			abs.setStatusCode(GenericStatusCode.NORMAL);
 			abs.setUptime(new org.joda.time.Duration(randomDurationMilliseconds));
+			abs.setMemoryUsedPercent(0.25);
 			sampleStatusList.add(abs);
 		}
 		
