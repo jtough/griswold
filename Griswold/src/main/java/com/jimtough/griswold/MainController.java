@@ -20,7 +20,6 @@ import com.jimtough.griswold.beans.AppBetaStatus;
 import com.jimtough.griswold.beans.GenericStatusCode;
 import com.jimtough.griswold.beans.Person;
 import com.jimtough.griswold.notification.AuthenticatedUserInfoMessageSource;
-import com.jimtough.griswold.notification.CurrentTimeMessageSource;
 import com.jimtough.griswold.notification.MovieQuotesMessageSource;
 import com.jimtough.griswold.ui.TableViewCreationUtilities;
 import com.jimtough.griswold.workers.AppBetaStatusUpdater;
@@ -43,8 +42,12 @@ import javafx.geometry.Side;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.chart.BarChart;
+import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.PieChart;
 import javafx.scene.chart.PieChart.Data;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.Label;
@@ -71,6 +74,7 @@ import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -135,6 +139,7 @@ public class MainController {
 	private TableView<AppBetaStatus> tvBeta = null;
 	private HBox chartsArea = null;
 	private PieChart appBetaStatusPieChart = null;
+	private BarChart<Number,String> appBetaUptimeBarChart = null;
 	
 	private ObservableList<Person> observablePersonList;
 	private ObservableList<AppAlphaStatus> observableAppAlphaStatusList;
@@ -327,7 +332,13 @@ public class MainController {
 		chart.setLegendVisible(true);
 		chart.setLegendSide(Side.BOTTOM);
 		chart.setLabelsVisible(false);
-		chart.setTitle(null);
+		//chart.setLabelLineLength(10.0);
+		chart.setTitle(MainApp.APP_BETA_NAME + " Statuses");
+		chart.setBorder(new Border(new BorderStroke(
+				Color.BLACK, 
+				BorderStrokeStyle.SOLID, 
+				new CornerRadii(10.0), 
+				null)));
 		//--------------------------------------------------------
 		// Set text to display when a pie slice is clicked
 		final Label caption = new Label("");
@@ -347,6 +358,50 @@ public class MainController {
 		}		
 		//--------------------------------------------------------
 		return chart;
+	}
+
+	BarChart<Number,String> createAppBetaUptimeBarChart() {
+		ObservableList<XYChart.Data<Number,String>> seriesData =
+				FXCollections.observableArrayList();
+		
+		XYChart.Data<Number,String> oneYearOrMore = 
+				new XYChart.Data<>(5, "One Year +");
+		XYChart.Data<Number,String> sixToTwelveMonths = 
+				new XYChart.Data<>(15, "6 to 12 Months");
+		XYChart.Data<Number,String> threeToSixMonths = 
+				new XYChart.Data<>(13, "3 to 6 Months");
+		XYChart.Data<Number,String> oneToThreeMonths = 
+				new XYChart.Data<>(8, "1 to 3 Months");
+		XYChart.Data<Number,String> lessThanOneMonth = 
+				new XYChart.Data<>(26, "< 1 Month");
+		
+		seriesData.add(lessThanOneMonth);
+		seriesData.add(oneToThreeMonths);
+		seriesData.add(threeToSixMonths);
+		seriesData.add(sixToTwelveMonths);
+		seriesData.add(oneYearOrMore);
+		
+		final NumberAxis xAxis = new NumberAxis();
+		final CategoryAxis yAxis = new CategoryAxis();
+		final BarChart<Number,String> bc = 
+				new BarChart<Number,String>(xAxis,yAxis);
+		bc.setTitle(MainApp.APP_BETA_NAME + " Uptimes Breakdown");
+		bc.setBorder(new Border(new BorderStroke(
+				Color.BLACK, 
+				BorderStrokeStyle.SOLID, 
+				new CornerRadii(10.0), 
+				null)));
+		bc.setCenterShape(true);
+		bc.setLegendVisible(false);
+		
+		xAxis.setLabel("Count");
+		//xAxis.setTickLabelRotation(90);
+		yAxis.setLabel("Uptime Category");
+
+		XYChart.Series<Number,String> series1 = new XYChart.Series<>();
+		series1.setData(seriesData);
+		bc.getData().add(series1);
+		return bc;
 	}
 	
 	private void transitionOldToNewContentB(
@@ -600,8 +655,8 @@ public class MainController {
 				this.notificationAreaIcon.contentProperty(),
 				this.notificationAreaIcon.fillProperty(),
 				this.notificationArea.backgroundProperty());
-		this.notificationAreaUpdater.addMessageSource(
-				new CurrentTimeMessageSource());
+		//this.notificationAreaUpdater.addMessageSource(
+		//		new CurrentTimeMessageSource());
 		this.notificationAreaUpdater.addMessageSource(
 				new MovieQuotesMessageSource());
 		this.notificationAreaUpdater.addMessageSource(
@@ -806,7 +861,9 @@ public class MainController {
 		chartsArea = new HBox(5);
 		appBetaStatusPieChart = createAppBetaStatusPieChart(
 				createObservableAppBetaPieChartData());
-		chartsArea.getChildren().add(appBetaStatusPieChart);
+		appBetaUptimeBarChart = createAppBetaUptimeBarChart();
+		chartsArea.getChildren().addAll(
+				appBetaStatusPieChart, appBetaUptimeBarChart);
 		createAppBetaStatusUpdater();
 
 		createNotificationArea();
@@ -829,6 +886,8 @@ public class MainController {
 		tvPerson.prefWidthProperty().bind(frameMiddleRegion.widthProperty());
 		tvAlpha.prefWidthProperty().bind(frameMiddleRegion.widthProperty());
 		tvBeta.prefWidthProperty().bind(frameMiddleRegion.widthProperty());
+		chartsArea.prefWidthProperty().bind(frameMiddleRegion.widthProperty());
+		chartsArea.prefHeightProperty().bind(frameMiddleRegion.heightProperty());
 		
 		sceneFrame.getChildren().add(this.frameMiddleRegion);
 		sceneFrame.getChildren().add(this.notificationArea);
