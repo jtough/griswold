@@ -76,6 +76,7 @@ import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -125,7 +126,7 @@ public class MainController {
 	private Group rootNode = null;
 	private VBox sceneFrame = null;
 	private HBox frameMiddleRegion = null;
-	private HBox middleRightContentArea = null;
+	private Pane middleRightContentArea = null;
 	private MenuBar menuBar = null;
 	private VBox toolbar = null;
 	private HBox notificationArea = null;
@@ -329,10 +330,10 @@ public class MainController {
 		}
 		final PieChart chart = new PieChart(dataList);
 		chart.setCenterShape(true);
-		chart.setLegendVisible(true);
-		chart.setLegendSide(Side.BOTTOM);
-		chart.setLabelsVisible(false);
-		//chart.setLabelLineLength(10.0);
+		chart.setLegendVisible(false);
+		//chart.setLegendSide(Side.TOP);
+		chart.setLabelsVisible(true);
+		chart.setLabelLineLength(8.0);
 		chart.setTitle(MainApp.APP_BETA_NAME + " Statuses");
 		chart.setBorder(new Border(new BorderStroke(
 				Color.BLACK, 
@@ -405,7 +406,7 @@ public class MainController {
 	}
 	
 	private void transitionOldToNewContentB(
-			final HBox container,
+			final Pane container,
 			final Node newContent) {
 		final Duration durationOut = Duration.millis(500);
 		final Duration durationIn = Duration.millis(500);
@@ -689,8 +690,8 @@ public class MainController {
 		return this.frameMiddleRegion;
 	}
 
-	HBox createMiddleRightContentArea() {
-		this.middleRightContentArea = new HBox();
+	Pane createMiddleRightContentArea() {
+		this.middleRightContentArea = new Pane();
 		return this.middleRightContentArea;
 	}
 	
@@ -882,12 +883,24 @@ public class MainController {
 		createFrameMiddleRegion();
 		this.frameMiddleRegion.getChildren().add(this.toolbar);
 		this.frameMiddleRegion.getChildren().add(this.middleRightContentArea);
+		middleRightContentArea.prefHeightProperty().bind(frameMiddleRegion.heightProperty());
+		middleRightContentArea.prefWidthProperty().bind(
+				sceneFrame.widthProperty()
+					.subtract(this.toolbar.widthProperty()));
 		
-		tvPerson.prefWidthProperty().bind(frameMiddleRegion.widthProperty());
-		tvAlpha.prefWidthProperty().bind(frameMiddleRegion.widthProperty());
-		tvBeta.prefWidthProperty().bind(frameMiddleRegion.widthProperty());
-		chartsArea.prefWidthProperty().bind(frameMiddleRegion.widthProperty());
-		chartsArea.prefHeightProperty().bind(frameMiddleRegion.heightProperty());
+		tvPerson.prefWidthProperty().bind(middleRightContentArea.widthProperty());
+		tvPerson.prefHeightProperty().bind(middleRightContentArea.heightProperty());
+		tvAlpha.prefWidthProperty().bind(middleRightContentArea.widthProperty());
+		tvAlpha.prefHeightProperty().bind(middleRightContentArea.heightProperty());
+		tvBeta.prefWidthProperty().bind(middleRightContentArea.widthProperty());
+		tvBeta.prefHeightProperty().bind(middleRightContentArea.heightProperty());
+
+		chartsArea.prefWidthProperty().bind(middleRightContentArea.widthProperty());
+		chartsArea.prefHeightProperty().bind(middleRightContentArea.heightProperty());
+		this.appBetaStatusPieChart.prefWidthProperty().bind(
+				middleRightContentArea.widthProperty().divide(2));
+		this.appBetaUptimeBarChart.prefWidthProperty().bind(
+				middleRightContentArea.widthProperty().divide(2));
 		
 		sceneFrame.getChildren().add(this.frameMiddleRegion);
 		sceneFrame.getChildren().add(this.notificationArea);
