@@ -38,7 +38,6 @@ import javafx.concurrent.ScheduledService;
 import javafx.concurrent.Task;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
-import javafx.geometry.Side;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -67,7 +66,6 @@ import javafx.scene.effect.GaussianBlur;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
-import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -529,16 +527,16 @@ public class MainController {
 	VBox createToolbarContent(final NavigationController navController) {
 		VBox vBox = new VBox(1);
 
-		Button bTools = createToolbarButton(
-				SVG_TOOLS, "Tools");
-		bTools.setOnAction(actionEvent -> {
-			try {
-				this.toolbar.disableProperty().set(true);
-				this.transitionOldToNewContentB(this.middleRightContentArea, this.tvPerson);
-			} finally {
-				this.toolbar.disableProperty().set(false);
-			}
-		});
+		//Button bTools = createToolbarButton(
+		//		SVG_TOOLS, "Tools");
+		//bTools.setOnAction(actionEvent -> {
+		//	try {
+		//		this.toolbar.disableProperty().set(true);
+		//		this.transitionOldToNewContentB(this.middleRightContentArea, this.tvPerson);
+		//	} finally {
+		//		this.toolbar.disableProperty().set(false);
+		//	}
+		//});
 
 		Button bMonitorAppAlpha = createToolbarButton(
 				SVG_CLOCK_FORWARD, "Monitor " + MainApp.APP_ALPHA_NAME);
@@ -588,7 +586,7 @@ public class MainController {
 				SVG_POWER, "Close application");
 		bExit.setOnAction(actionEvent -> navController.exitApplication());
 		
-		vBox.getChildren().add(bTools);
+		//vBox.getChildren().add(bTools);
 		vBox.getChildren().add(bMonitorAppAlpha);
 		vBox.getChildren().add(bMonitorAppBeta);
 		vBox.getChildren().add(bCharts);
@@ -737,19 +735,6 @@ public class MainController {
 		//final ObservableList<Person> teamMembers = FXCollections.observableArrayList();
 		tv.setItems(observablePersonList);
 		
-		tv.setOnMouseClicked(event -> {
-			if (event.getButton().equals(MouseButton.PRIMARY)) {
-				if (event.getClickCount() > 1) {
-					logger.info("Mouse click count: " + event.getClickCount());
-					Person selectedPerson = 
-							tv.getSelectionModel().getSelectedItem();
-					PersonDetailsController pdc = 
-							new PersonDetailsController(navController);
-					pdc.createPersonDetailsModalDialogScene(primaryStage, selectedPerson);
-				}
-			}
-		});
-		
 		TableColumn<Person, String> aliasNameCol = new TableColumn<>("Alias");
 		aliasNameCol.setEditable(true);
 		aliasNameCol.setCellValueFactory(new PropertyValueFactory<Person,String>("aliasName"));
@@ -858,7 +843,8 @@ public class MainController {
 		tvAlpha = tableViewCreationUtilities.createAppAlphaStatusTableView(
 				createObservableAppAlphaStatusList());
 		tvBeta = tableViewCreationUtilities.createAppBetaStatusTableView(
-				createObservableAppBetaStatusList());
+				createObservableAppBetaStatusList(),
+				this.primaryStage);
 		chartsArea = new HBox(5);
 		appBetaStatusPieChart = createAppBetaStatusPieChart(
 				createObservableAppBetaPieChartData());

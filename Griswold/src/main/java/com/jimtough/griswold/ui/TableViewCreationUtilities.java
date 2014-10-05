@@ -22,8 +22,10 @@ import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.ProgressBarTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseButton;
+import javafx.stage.Stage;
 import javafx.util.Callback;
 
+import com.jimtough.griswold.AppBetaDetailsController;
 import com.jimtough.griswold.GenericAppStatusTableCell;
 import com.jimtough.griswold.beans.AppAlphaStatus;
 import com.jimtough.griswold.beans.AppBetaStatus;
@@ -99,7 +101,8 @@ public class TableViewCreationUtilities {
 	 * @return Non-null {@code TableView<AppBetaStatus>}
 	 */
 	public TableView<AppBetaStatus> createAppBetaStatusTableView(
-			final ObservableList<AppBetaStatus> observableList) {
+			final ObservableList<AppBetaStatus> observableList,
+			final Stage primaryStage) {
 		if (observableList == null) {
 			throw new IllegalArgumentException("observableList cannot be null");
 		}
@@ -119,8 +122,10 @@ public class TableViewCreationUtilities {
 					logger.info("Mouse click count: " + event.getClickCount());
 					AppBetaStatus status =
 							tv.getSelectionModel().getSelectedItem();
-					// TODO Do something with the selected item
-					logger.info("Double-clicked on: " + status);
+					logger.info("Double-clicked on: " + status.getHostname());
+					AppBetaDetailsController abdc =
+							new AppBetaDetailsController(primaryStage);
+					abdc.createAppBetaStatusDetailsModalDialogScene(status);
 				}
 			}
 		});

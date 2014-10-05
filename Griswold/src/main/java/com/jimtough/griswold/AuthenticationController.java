@@ -38,7 +38,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
-import javafx.scene.effect.Reflection;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
@@ -330,7 +329,7 @@ public class AuthenticationController {
 				+ "-fx-background-color: rgba(255, 153, 51, .9); ");
 		passwordField.prefWidthProperty().bind(stage.widthProperty().subtract(55));
 		Tooltip passwordTT = new Tooltip(
-				"Heyo! Press Escape key to quit. " + 
+				"Press Escape key to quit. " + 
 				"Fake password is '" + TEST_PASSWORD + "'.");
 		SVGPath passwordTtIcon = new SVGPath();
 		passwordTtIcon.setFill(FOREGROUND_COLOR_FOR_INPUT_CONTROLS);
