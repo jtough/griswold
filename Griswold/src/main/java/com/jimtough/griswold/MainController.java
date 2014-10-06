@@ -20,9 +20,9 @@ import com.jimtough.griswold.beans.AppBetaStatus;
 import com.jimtough.griswold.beans.GenericStatusCode;
 import com.jimtough.griswold.beans.Person;
 import com.jimtough.griswold.notification.AuthenticatedUserInfoMessageSource;
-import com.jimtough.griswold.notification.MovieQuotesMessageSource;
 import com.jimtough.griswold.ui.TableViewCreationUtilities;
 import com.jimtough.griswold.workers.AppBetaStatusUpdater;
+import com.jimtough.griswold.workers.AppBetaStatusUpdaterRunnable;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
@@ -132,6 +132,8 @@ public class MainController {
 	private NotificationAreaUpdater notificationAreaUpdater = null;
 	private ScheduledService<Void> autoCycler = null;
 	private AppBetaStatusUpdater appBetaStatusUpdater = null;
+	private Thread appBetaUpdaterThread = null;
+
 
 	private TableView<Person> tvPerson = null;
 	private TableView<AppAlphaStatus> tvAlpha = null;
@@ -231,15 +233,17 @@ public class MainController {
 		
 		List<String> hostnameList = readAppBetaHostnamesFromFile();
 		List<AppBetaStatus> sampleStatusList = new ArrayList<AppBetaStatus>();
-		Random r = new Random();
+		//Random r = new Random();
 		for (String hostname : hostnameList) {
-			long FIVE_HUNDRED_DAYS = 43200000000L; // 500 days max
-			long randomDurationMilliseconds = Math.abs(r.nextLong()) % FIVE_HUNDRED_DAYS;
+			//long FIVE_HUNDRED_DAYS = 43200000000L; // 500 days max
+			//long randomDurationMilliseconds = Math.abs(r.nextLong()) % FIVE_HUNDRED_DAYS;
 			AppBetaStatus abs = new AppBetaStatus(hostname);
 			abs.setLastUpdatedDateTime(DateTime.now());
-			abs.setStatusCode(GenericStatusCode.NORMAL);
-			abs.setUptime(new org.joda.time.Duration(randomDurationMilliseconds));
-			abs.setMemoryUsedPercent(0.25);
+			abs.setStatusCode(GenericStatusCode.UNKNOWN);
+			//abs.setUptime(new org.joda.time.Duration(randomDurationMilliseconds));
+			abs.setUptime(new org.joda.time.Duration(0));
+			//abs.setMemoryUsedPercent(0.25);
+			abs.setMemoryUsedPercent(-1.0);
 			sampleStatusList.add(abs);
 		}
 		
@@ -331,7 +335,7 @@ public class MainController {
 		chart.setLegendVisible(false);
 		//chart.setLegendSide(Side.TOP);
 		chart.setLabelsVisible(true);
-		chart.setLabelLineLength(8.0);
+		chart.setLabelLineLength(20.0);
 		chart.setTitle(MainApp.APP_BETA_NAME + " Statuses");
 		chart.setBorder(new Border(new BorderStroke(
 				Color.BLACK, 
@@ -656,8 +660,8 @@ public class MainController {
 				this.notificationArea.backgroundProperty());
 		//this.notificationAreaUpdater.addMessageSource(
 		//		new CurrentTimeMessageSource());
-		this.notificationAreaUpdater.addMessageSource(
-				new MovieQuotesMessageSource());
+		//this.notificationAreaUpdater.addMessageSource(
+		//		new MovieQuotesMessageSource());
 		this.notificationAreaUpdater.addMessageSource(
 				this.appBetaStatusUpdater);
 		
@@ -914,6 +918,11 @@ public class MainController {
 					} else {
 						logger.warn("setOnShown() - authUser is null");
 					}
+					AppBetaStatusUpdaterRunnable absUpdaterRunnable =
+							new AppBetaStatusUpdaterRunnable(observableAppBetaStatusList);
+					appBetaUpdaterThread = new Thread(absUpdaterRunnable, "AppBetaUpdater");
+					appBetaUpdaterThread.setDaemon(true);
+					appBetaUpdaterThread.start();
 				}
 			});
 		this.primaryStage.setOnHiding(
@@ -930,6 +939,7 @@ public class MainController {
 					logger.info("setOnCloseRequest() - canceling background services");
 					autoCycler.cancel();
 					appBetaStatusUpdater.cancel();
+					appBetaUpdaterThread.interrupt();
 				}
 			});
 		

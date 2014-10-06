@@ -137,7 +137,7 @@ public class TableViewCreationUtilities {
 		// Long form where I write the Callback implementation myself
 		hostnameCol.setCellValueFactory(new Callback<CellDataFeatures<AppBetaStatus, String>, ObservableValue<String>>() {
 			public ObservableValue<String> call(CellDataFeatures<AppBetaStatus, String> p) {
-				logger.info("called for hostname - " + p.getValue().hostnameProperty().get());
+				logger.debug("called for hostname - " + p.getValue().hostnameProperty().get());
 				return p.getValue().hostnameProperty();
 			}
 		});

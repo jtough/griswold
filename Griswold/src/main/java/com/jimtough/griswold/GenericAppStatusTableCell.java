@@ -28,7 +28,7 @@ public class GenericAppStatusTableCell
 	
 	@Override
 	protected void updateItem(String item, boolean empty) {
-		logger.info("updateItem()");
+		logger.debug("updateItem()");
 		super.updateItem(item, empty);
 		setText(item == null ? "" : item);
 		if (item != null) {

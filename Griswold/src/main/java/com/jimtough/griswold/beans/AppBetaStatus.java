@@ -75,7 +75,7 @@ public class AppBetaStatus extends GenericAppStatus {
 		if (value > 1.0D) {
 			throw new IllegalArgumentException("value cannot be greater than 1.0");
 		}
-		if (value < 0.0D) {
+		if (value < 0.0D && value != -1.0D) {
 			throw new IllegalArgumentException("value cannot be less than 0.0");
 		}
 		if (Platform.isFxApplicationThread()) {

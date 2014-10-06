@@ -4,10 +4,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +32,7 @@ import javafx.scene.control.TableView;
  * This class will update the list of 'App Beta' status objects from a
  * background thread
  * 
+ * @deprecated This should not run on the main thread as it will block UI ops - move stuff to AppBetaStatusUpdaterRunnable
  * @author JTOUGH
  */
 public class AppBetaStatusUpdater 
@@ -46,7 +45,7 @@ public class AppBetaStatusUpdater
 	private final ObservableList<AppBetaStatus> ol;
 	private final ObservableList<PieChart.Data> statusPieChartData;
 	private final TableView<AppBetaStatus> tv;
-	private final Random random = new Random();
+	//private final Random random = new Random();
 
 	private class UpdateTask extends Task<Void> {
 		@Override
@@ -83,30 +82,26 @@ public class AppBetaStatusUpdater
 		this.tv = tv;
 	}
 
-	private void getUpdatedStatusData() {
-		// does nothing yet
-	}
-
-	private void randomlyChangeGenericStatusCode(AppBetaStatus abs) {
-		int x = random.nextInt(10000);
-		GenericStatusCode curStatusCode = abs.getStatusCode();
-		
-		if (curStatusCode.equals(GenericStatusCode.NORMAL)) {
-			// 3 in 10000 chance of being changed to a bad status code
-			if (x == 0) {
-				abs.setStatusCode(GenericStatusCode.OFFLINE);
-			} else if (x == 1) {
-				abs.setStatusCode(GenericStatusCode.WARNING);
-			} else if (x == 2) {
-				abs.setStatusCode(GenericStatusCode.ERROR);
-			}
-		} else {
-			// 5% chance of switching back to a normal status code
-			if (x < 500) {
-				abs.setStatusCode(GenericStatusCode.NORMAL);
-			}
-		}
-	}
+	//private void randomlyChangeGenericStatusCode(AppBetaStatus abs) {
+	//	int x = random.nextInt(10000);
+	//	GenericStatusCode curStatusCode = abs.getStatusCode();
+	//	
+	//	if (curStatusCode.equals(GenericStatusCode.NORMAL)) {
+	//		// 3 in 10000 chance of being changed to a bad status code
+	//		if (x == 0) {
+	//			abs.setStatusCode(GenericStatusCode.OFFLINE);
+	//		} else if (x == 1) {
+	//			abs.setStatusCode(GenericStatusCode.WARNING);
+	//		} else if (x == 2) {
+	//			abs.setStatusCode(GenericStatusCode.ERROR);
+	//		}
+	//	} else {
+	//		// 5% chance of switching back to a normal status code
+	//		if (x < 500) {
+	//			abs.setStatusCode(GenericStatusCode.NORMAL);
+	//		}
+	//	}
+	//}
 	
 	private void updateStatusPieChartData() {
 		Map<GenericStatusCode,AtomicInteger> statusToCountMap =
@@ -145,8 +140,6 @@ public class AppBetaStatusUpdater
 	}
 	
 	private void updateStatusObjectList() {
-		getUpdatedStatusData(); // this is where we would get real data first...
-
 		// Jim Tough - 2014-09-14
 		// TODO The 'force re-sort' trick only works for a single-column sort.
 		// Will require more effort to make this work for multi-column sort.
@@ -160,7 +153,7 @@ public class AppBetaStatusUpdater
 		}		
 		
 		for (AppBetaStatus abs : ol) {
-			abs.setLastUpdatedDateTime(DateTime.now());
+			//abs.setLastUpdatedDateTime(DateTime.now());
 			//randomlyChangeGenericStatusCode(abs);
 		}
 		
@@ -188,7 +181,10 @@ public class AppBetaStatusUpdater
 					logger.info("Ignoring abnormal status" + 
 							abs.getHostname() + " alerts suppressed");
 				} else {
-					abnormalStatusCount++;
+					if (abs.getStatusCode().ordinal() > 
+							GenericStatusCode.UNKNOWN.ordinal()) {
+						abnormalStatusCount++;
+					}
 					if (worstStatus.ordinal() < abs.getStatusCode().ordinal()) {
 						worstStatus = abs.getStatusCode();
 					}
