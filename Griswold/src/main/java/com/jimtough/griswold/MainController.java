@@ -834,8 +834,8 @@ public class MainController {
 	}
 	
 	public Scene createMainStageScene() throws IOException {
-		primaryStage.setWidth(800);
-		primaryStage.setHeight(600);
+		primaryStage.setWidth(1024);
+		primaryStage.setHeight(768);
 		primaryStage.setTitle(MainApp.APPLICATION_NAME);
 		
 		createRootNode();
