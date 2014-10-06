@@ -17,6 +17,12 @@ public class GenericAppStatusTableCell
 
 	private static final Color DEFAULT_TEXT_COLOR = Color.BLACK;
 	
+	private static final String NORMAL_BACKGROUND_COLOR = "";
+	private static final Color NORMAL_TEXT_COLOR = DEFAULT_TEXT_COLOR;
+	
+	private static final String UNKNOWN_BACKGROUND_COLOR = "lightblue";
+	private static final Color UNKNOWN_TEXT_COLOR = Color.BLACK;
+	
 	private static final String WARNING_BACKGROUND_COLOR = "yellow";
 	private static final Color WARNING_TEXT_COLOR = Color.BLACK;
 	
@@ -32,11 +38,16 @@ public class GenericAppStatusTableCell
 		super.updateItem(item, empty);
 		setText(item == null ? "" : item);
 		if (item != null) {
-			if (item.contains(GenericStatusCode.WARNING.displayString)) {
+			if (item.contains(GenericStatusCode.NORMAL.displayString)) {
+				setTextFill(NORMAL_TEXT_COLOR);
+				setStyle("-fx-background-color: " + NORMAL_BACKGROUND_COLOR);
+			} else if (item.contains(GenericStatusCode.UNKNOWN.displayString)) {
+				setTextFill(UNKNOWN_TEXT_COLOR);
+				setStyle("-fx-background-color: " + UNKNOWN_BACKGROUND_COLOR);
+			} else if (item.contains(GenericStatusCode.WARNING.displayString)) {
 				setTextFill(WARNING_TEXT_COLOR);
 				setStyle("-fx-background-color: " + WARNING_BACKGROUND_COLOR);
-			} else if (item.contains(GenericStatusCode.ERROR.displayString) ||
-					item.contains(GenericStatusCode.UNKNOWN.displayString)) {
+			} else if (item.contains(GenericStatusCode.ERROR.displayString)) {
 				setTextFill(ERROR_TEXT_COLOR);
 				setStyle("-fx-background-color: " + ERROR_BACKGROUND_COLOR);
 			} else if (item.contains(GenericStatusCode.OFFLINE.displayString)) {

@@ -38,6 +38,7 @@ import javafx.concurrent.ScheduledService;
 import javafx.concurrent.Task;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
+import javafx.geometry.Side;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -332,10 +333,10 @@ public class MainController {
 		}
 		final PieChart chart = new PieChart(dataList);
 		chart.setCenterShape(true);
-		chart.setLegendVisible(false);
-		//chart.setLegendSide(Side.TOP);
-		chart.setLabelsVisible(true);
-		chart.setLabelLineLength(20.0);
+		chart.setLegendVisible(true);
+		chart.setLegendSide(Side.LEFT);
+		chart.setLabelsVisible(false);
+		//chart.setLabelLineLength(20.0);
 		chart.setTitle(MainApp.APP_BETA_NAME + " Statuses");
 		chart.setBorder(new Border(new BorderStroke(
 				Color.BLACK, 
