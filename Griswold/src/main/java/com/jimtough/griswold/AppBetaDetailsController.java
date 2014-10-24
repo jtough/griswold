@@ -127,18 +127,22 @@ public class AppBetaDetailsController {
 			Text statusLabel = new Text("Status");
 			statusLabel.setFont(labelFont);
 			gridpane.add(statusLabel, 0, 1);
-			gridpane.add(new Text(abs.getStatusCode().displayString), 1, 1);
+			Text statusValue = new Text();
+			statusValue.textProperty().bind(abs.statusStringProperty());
+			gridpane.add(statusValue, 1, 1);
 			GridPane.setHalignment(statusLabel, HPos.RIGHT);
 
 			NumberFormat nf = DecimalFormat.getInstance();
 			nf.setMinimumIntegerDigits(1);
 			nf.setMinimumFractionDigits(1);
 			nf.setMaximumFractionDigits(1);
-			double memoryUsedValue = abs.getMemoryUsedPercent() * 100;
 			Text memoryUsedLabel = new Text("Memory Used");
 			memoryUsedLabel.setFont(labelFont);
 			gridpane.add(memoryUsedLabel, 0, 2);
-			gridpane.add(new Text(nf.format(memoryUsedValue) + "%"), 1, 2);
+			Text memoryUsedValueText = new Text();
+			memoryUsedValueText.textProperty().bind(
+					abs.memoryUsedPercentProperty().multiply(100).asString("%1.2f %%"));
+			gridpane.add(memoryUsedValueText, 1, 2);
 			GridPane.setHalignment(memoryUsedLabel, HPos.RIGHT);
 			
 			Text suppressAlertsLabel = new Text("Suppress Alerts");
