@@ -2,7 +2,10 @@ package com.jimtough.griswold.workers;
 
 import java.util.Date;
 
+import javax.management.AttributeChangeNotification;
 import javax.management.MBeanServerConnection;
+import javax.management.Notification;
+import javax.management.NotificationListener;
 import javax.management.ObjectName;
 import javax.management.openmbean.CompositeData;
 import javax.management.remote.JMXConnector;
@@ -17,28 +20,28 @@ public class RemoteJMXAppClient {
 	private static final Logger logger =
 			LoggerFactory.getLogger(RemoteJMXAppClient.class);
 	
-	///**
-	// * Inner class that will handle the notifications.
-	// */
-	//private static class ClientListener implements NotificationListener {
-	//	public void handleNotification(
-	//			Notification notification,
-	//			Object handback) {
-	//		logger.info("Received notification:" +
-	//				" | ClassName: " + notification.getClass().getName() +
-	//				" | Source: " + notification.getSource() +
-	//				" | Type: " + notification.getType() +
-	//				" | Message: " + notification.getMessage());
-	//		if (notification instanceof AttributeChangeNotification) {
-	//			AttributeChangeNotification acn =
-	//				(AttributeChangeNotification) notification;
-	//			logger.info("AttributeName: " + acn.getAttributeName() +
-	//				" | AttributeType: " + acn.getAttributeType() +
-	//				" | NewValue: " + acn.getNewValue() +
-	//				" | OldValue: " + acn.getOldValue());
-	//		}
-	//	}
-	//}
+	/**
+	 * Inner class that will handle the notifications.
+	 */
+	private static class ClientListener implements NotificationListener {
+		public void handleNotification(
+				Notification notification,
+				Object handback) {
+			logger.info("Received notification:" +
+					" | ClassName: " + notification.getClass().getName() +
+					" | Source: " + notification.getSource() +
+					" | Type: " + notification.getType() +
+					" | Message: " + notification.getMessage());
+			if (notification instanceof AttributeChangeNotification) {
+				AttributeChangeNotification acn =
+					(AttributeChangeNotification) notification;
+				logger.info("AttributeName: " + acn.getAttributeName() +
+					" | AttributeType: " + acn.getAttributeType() +
+					" | NewValue: " + acn.getNewValue() +
+					" | OldValue: " + acn.getOldValue());
+			}
+		}
+	}
 
 	/**
 	 * Immutable container for various data properties of a single
@@ -94,20 +97,29 @@ public class RemoteJMXAppClient {
 			final String urlString = "service:jmx:rmi:///jndi/rmi://" + 
 					hostname + ":" + port + "/jmxrmi";
 			JMXServiceURL url = new JMXServiceURL(urlString);
+					//"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi");
 					
 			logger.debug("Connecting");
 			jmxc = JMXConnectorFactory.connect(url, null);
-			logger.trace("Connected");
+			logger.debug("Connected");
+	
+			//// Create listener
+			////
+			//ClientListener listener = new ClientListener();
 			
-			logger.trace("Get an MBeanServerConnection");
+			// Get an MBeanServerConnection
+			//
+			logger.debug("Get an MBeanServerConnection");
 			MBeanServerConnection mbsc = jmxc.getMBeanServerConnection();
+	
 			Object oMemory = mbsc.getAttribute(
 					new ObjectName("java.lang:type=Memory"), "HeapMemoryUsage");
 			CompositeData cdMemory = (CompositeData) oMemory;
+			//logger.info("committed memory: " + cd.get("committed"));
 			long memoryUsed = (long)cdMemory.get("used");
 			long memoryMax = (long)cdMemory.get("max");
-			logger.trace("used memory: " + memoryUsed);
-			logger.trace("max memory: " + memoryMax);
+			logger.debug("used memory: " + memoryUsed);
+			logger.debug("max memory: " + memoryMax);
 
 			long startTimeLong = (long) mbsc.getAttribute(
 					new ObjectName("java.lang:type=Runtime"), "StartTime");
@@ -139,10 +151,15 @@ public class RemoteJMXAppClient {
 			
 		} finally {
 			if (jmxc != null) {
-				logger.trace("Closing connection");
+				logger.debug("Closing connection");
 				jmxc.close();
 			}
 		}
+	}
+	
+	public static void main(String[] args) throws Exception {
+		RemoteJMXAppClient rjac = new RemoteJMXAppClient();
+		rjac.getInstanceRuntimeData("jrc1dscon01", 10998);
 	}
 
 }
