@@ -28,6 +28,43 @@ public class AppBetaStatusUpdaterRunnable
 		this.ol = ol;
 	}
 	
+	void processItem(final AppBetaStatus abs) throws InterruptedException {
+		try {
+			//InstanceRuntimeData mud = jmxClient.getInstanceRuntimeData(
+			//		abs.getHostname(), 9999);
+			// stubbed out
+			MutableDateTime fakeStartTime = MutableDateTime.now();
+			fakeStartTime.addDays(-1);
+			InstanceRuntimeData mud = new InstanceRuntimeData(
+					abs.getHostname(), 
+					25000000, 
+					100000000, 
+					fakeStartTime.toDate());
+			TimeUnit.MILLISECONDS.sleep(1250);
+			double memoryUsedPercent =
+					(double)mud.getMemoryUsed() / (double)mud.getMemoryMax();
+			Platform.runLater(() -> {
+				abs.setLastUpdatedDateTime(DateTime.now());
+				abs.setMemoryUsedPercent(memoryUsedPercent);
+				abs.setStatusCode(GenericStatusCode.NORMAL);
+				Duration d = new Duration(
+						new DateTime(mud.getStartTime()),
+						DateTime.now());
+				abs.setUptime(d);
+			});
+		} catch (Exception e) {
+			Platform.runLater(() -> {
+				abs.setLastUpdatedDateTime(DateTime.now());
+				abs.setMemoryUsedPercent(-1.0);
+				abs.setStatusCode(GenericStatusCode.OFFLINE);
+				abs.setUptime(new Duration(0));
+			});
+		}
+		if (Thread.currentThread().isInterrupted()) {
+			throw new InterruptedException("Thread flagged as interrupted");
+		}
+	}
+	
 	@Override
 	public void run() {
 		//-------------------------------------------------------
@@ -39,50 +76,63 @@ public class AppBetaStatusUpdaterRunnable
 				logger.warn("This thread was interrupted - exiting");
 				return;
 			}
-			for (AppBetaStatus abs : ol) {
-				try {
-					//InstanceRuntimeData mud = jmxClient.getInstanceRuntimeData(
-					//		abs.getHostname(), 9999);
-					// stubbed out
-					MutableDateTime fakeStartTime = MutableDateTime.now();
-					fakeStartTime.addDays(-1);
-					InstanceRuntimeData mud = new InstanceRuntimeData(
-							abs.getHostname(), 
-							25000000, 
-							100000000, 
-							fakeStartTime.toDate());
-					TimeUnit.MILLISECONDS.sleep(1250);
-					double memoryUsedPercent =
-							(double)mud.getMemoryUsed() / (double)mud.getMemoryMax();
-					Platform.runLater(() -> {
-						abs.setLastUpdatedDateTime(DateTime.now());
-						abs.setMemoryUsedPercent(memoryUsedPercent);
-						abs.setStatusCode(GenericStatusCode.NORMAL);
-						Duration d = new Duration(
-								new DateTime(mud.getStartTime()),
-								DateTime.now());
-						abs.setUptime(d);
-					});
-				} catch (Exception e) {
-					Platform.runLater(() -> {
-						abs.setLastUpdatedDateTime(DateTime.now());
-						abs.setMemoryUsedPercent(-1.0);
-						abs.setStatusCode(GenericStatusCode.OFFLINE);
-						abs.setUptime(new Duration(0));
-					});
-				}
-				if (Thread.currentThread().isInterrupted()) {
-					logger.warn("This thread was interrupted - exiting");
-					return;
-				}
-				try {
+			try {
+				for (AppBetaStatus abs : ol) {
+					processItem(abs);
+					//try {
+					//	//InstanceRuntimeData mud = jmxClient.getInstanceRuntimeData(
+					//	//		abs.getHostname(), 9999);
+					//	// stubbed out
+					//	MutableDateTime fakeStartTime = MutableDateTime.now();
+					//	fakeStartTime.addDays(-1);
+					//	InstanceRuntimeData mud = new InstanceRuntimeData(
+					//			abs.getHostname(), 
+					//			25000000, 
+					//			100000000, 
+					//			fakeStartTime.toDate());
+					//	TimeUnit.MILLISECONDS.sleep(1250);
+					//	double memoryUsedPercent =
+					//			(double)mud.getMemoryUsed() / (double)mud.getMemoryMax();
+					//	Platform.runLater(() -> {
+					//		abs.setLastUpdatedDateTime(DateTime.now());
+					//		abs.setMemoryUsedPercent(memoryUsedPercent);
+					//		abs.setStatusCode(GenericStatusCode.NORMAL);
+					//		Duration d = new Duration(
+					//				new DateTime(mud.getStartTime()),
+					//				DateTime.now());
+					//		abs.setUptime(d);
+					//	});
+					//} catch (Exception e) {
+					//	Platform.runLater(() -> {
+					//		abs.setLastUpdatedDateTime(DateTime.now());
+					//		abs.setMemoryUsedPercent(-1.0);
+					//		abs.setStatusCode(GenericStatusCode.OFFLINE);
+					//		abs.setUptime(new Duration(0));
+					//	});
+					//}
+					//if (Thread.currentThread().isInterrupted()) {
+					//	logger.warn("This thread was interrupted - exiting");
+					//	return;
+					//}
+					//try {
+					//	// Sleep between each instance so this thread does not
+					//	// overload the UI with too many updates
+					//	TimeUnit.MILLISECONDS.sleep(250);
+					//} catch (InterruptedException e) {
+					//	logger.warn("This thread was interrupted - exiting");
+					//	return;
+					//}
+					
 					// Sleep between each instance so this thread does not
 					// overload the UI with too many updates
 					TimeUnit.MILLISECONDS.sleep(250);
-				} catch (InterruptedException e) {
-					logger.warn("This thread was interrupted - exiting");
-					return;
 				}
+			} catch (InterruptedException ie) {
+				logger.warn("Caught InterruptedException - exiting", ie);
+				return;
+			} catch (Exception e) {
+				logger.error("Caught exception" + 
+						" - ignoring, but iterating from start of list", e);
 			}
 		}
 		//-------------------------------------------------------
