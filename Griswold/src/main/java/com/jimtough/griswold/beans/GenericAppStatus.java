@@ -28,7 +28,7 @@ public abstract class GenericAppStatus {
 	private final ReadOnlyStringWrapper lastUpdatedString;
 	private final ReadOnlyStringWrapper statusString;
 	private final BooleanProperty suppressAlerts;
-	
+	private final StringProperty notes;
 	
 	private GenericStatusCode genericStatusCode;
 	private DateTime lastUpdatedDateTime;
@@ -46,6 +46,7 @@ public abstract class GenericAppStatus {
 		this.lastUpdatedString = new ReadOnlyStringWrapper("");
 		this.statusString = new ReadOnlyStringWrapper("");
 		this.suppressAlerts = new SimpleBooleanProperty(false);
+		this.notes = new SimpleStringProperty("");
 		setStatusCode(GenericStatusCode.UNKNOWN);
 	}
 
@@ -140,8 +141,6 @@ public abstract class GenericAppStatus {
 				this.suppressAlerts.set(value);
 			});
 		}
-		
-		
 	}
 
 	public synchronized boolean getSuppressAlerts() {
@@ -150,6 +149,12 @@ public abstract class GenericAppStatus {
 	
 	public BooleanProperty suppressAlertsProperty() {
 		return suppressAlerts;
+	}
+	
+	//---------------------------------------------------
+	// notes accessors
+	public StringProperty notesProperty() {
+		return notes;
 	}
 	
 	//---------------------------------------------------

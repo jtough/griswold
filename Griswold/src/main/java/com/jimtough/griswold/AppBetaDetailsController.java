@@ -6,6 +6,7 @@ import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.Tooltip;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.input.KeyCode;
@@ -36,7 +37,7 @@ public class AppBetaDetailsController {
 			LoggerFactory.getLogger(AppBetaDetailsController.class);
 
 	private static final int SCENE_WIDTH = 480;
-	private static final int SCENE_HEIGHT = 240;
+	private static final int SCENE_HEIGHT = 300;
 	
 	private final Stage parent;
 	private final Stage stage;
@@ -149,6 +150,15 @@ public class AppBetaDetailsController {
 			gridpane.add(lastUpdatedLabel, 0, 4);
 			gridpane.add(lastUpdatedText, 1, 4);
 			GridPane.setHalignment(lastUpdatedLabel, HPos.RIGHT);
+			
+			Text notesLabel = new Text("Notes");
+			TextArea notesText = new TextArea();
+			notesText.textProperty().bindBidirectional(abs.notesProperty());
+			notesText.wrapTextProperty().set(true);
+			notesLabel.setFont(labelFont);
+			gridpane.add(notesLabel, 0, 5);
+			gridpane.add(notesText, 1, 5);
+			GridPane.setHalignment(notesLabel, HPos.RIGHT);
 
 			stackPane.getChildren().add(gridpane);
 			stage.show();

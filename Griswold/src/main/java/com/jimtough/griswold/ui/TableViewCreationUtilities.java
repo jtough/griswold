@@ -75,10 +75,17 @@ public class TableViewCreationUtilities {
 		lastUpdatedStringCol.setEditable(false);
 		lastUpdatedStringCol.setCellValueFactory(new PropertyValueFactory<AppAlphaStatus,String>("lastUpdatedString"));
 		
+		TableColumn<AppAlphaStatus, String> notesCol = new TableColumn<>("Notes");
+		notesCol.setEditable(false);
+		notesCol.setCellValueFactory(new PropertyValueFactory<AppAlphaStatus,String>("notes"));
+		notesCol.minWidthProperty().set(150.0);
+		notesCol.prefWidthProperty().set(150.0);
+		
 		List<TableColumn<AppAlphaStatus,String>> tableColumnList = new ArrayList<>();
 		tableColumnList.add(hostnameCol);
 		tableColumnList.add(statusStringCol);
 		tableColumnList.add(lastUpdatedStringCol);
+		tableColumnList.add(notesCol);
 		
 		tv.getColumns().setAll(tableColumnList);
 		
@@ -172,6 +179,12 @@ public class TableViewCreationUtilities {
 		uptimeCol.setEditable(false);
 		uptimeCol.setCellValueFactory(new PropertyValueFactory<AppBetaStatus,String>("uptimeString"));
 		
+		TableColumn<AppBetaStatus, String> notesCol = new TableColumn<>("Notes");
+		notesCol.setEditable(false);
+		notesCol.setCellValueFactory(new PropertyValueFactory<AppBetaStatus,String>("notes"));
+		notesCol.minWidthProperty().set(150.0);
+		notesCol.prefWidthProperty().set(150.0);
+		
 		List<TableColumn<AppBetaStatus,? extends Object>> tableColumnList = new ArrayList<>();
 		tableColumnList.add(hostnameCol);
 		tableColumnList.add(statusStringCol);
@@ -179,6 +192,7 @@ public class TableViewCreationUtilities {
 		tableColumnList.add(suppressAlertsCol);
 		//tableColumnList.add(lastUpdatedStringCol);
 		tableColumnList.add(uptimeCol);
+		tableColumnList.add(notesCol);
 		
 		tv.getColumns().setAll(tableColumnList);
 		
