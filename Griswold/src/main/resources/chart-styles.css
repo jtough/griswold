@@ -5,39 +5,5 @@
 .default-color3.chart-pie { -fx-pie-color: #e61f15; }
 .default-color4.chart-pie { -fx-pie-color: #000000; }
 
-/* 
-.chart-pie-label-line {
-    -fx-stroke: #8b4513;
-    -fx-fill: #8b4513;
-}
-
-.chart-pie-label {
-    -fx-fill: #8b4513;
-    -fx-font-size: 1em;
-}
-*/
-
  
 .default-color0.chart-bar { -fx-bar-fill: #46d4d4; }
-/*
-.default-color1.chart-bar { -fx-bar-fill: #dcdc55; }
-.default-color2.chart-bar { -fx-bar-fill: #55dc55; }
-*/
-
-/*
-.data0.chart-bar {
-    -fx-background-image: url("austria.png");
-}
-.data1.chart-bar {
-    -fx-background-image: url("brazil.png");
-}
-.data2.chart-bar {
-    -fx-background-image: url("france.png");
-}
-.data3.chart-bar {
-    -fx-background-image: url("italy.png");
-}
-.data4.chart-bar {
-    -fx-background-image: url("usa.png");
-}
-*/

@@ -144,7 +144,7 @@ public class TableViewCreationUtilities {
 		// Long form where I write the Callback implementation myself
 		hostnameCol.setCellValueFactory(new Callback<CellDataFeatures<AppBetaStatus, String>, ObservableValue<String>>() {
 			public ObservableValue<String> call(CellDataFeatures<AppBetaStatus, String> p) {
-				logger.debug("called for hostname - " + p.getValue().hostnameProperty().get());
+				logger.trace("called for hostname - " + p.getValue().hostnameProperty().get());
 				return p.getValue().hostnameProperty();
 			}
 		});
@@ -269,11 +269,19 @@ public class TableViewCreationUtilities {
 					item.setSuppressAlerts(true);
 					logger.info("Suppressing alerts for " + item.getHostname());
 				});
+
+				MenuItem deleteMenuItem = new MenuItem("Delete Entry");
+				deleteMenuItem.setOnAction((actionEvent) -> {
+					AppBetaStatus item = row.getItem();
+					observableList.remove(item);
+					logger.info("Deleted item: " + item.getHostname());
+				});
 				
 				contextMenu.getItems().addAll(
 						//removeMenuItem,
 						changeStatusMenu,
-						suppressAlertsMenuItem);
+						suppressAlertsMenuItem,
+						deleteMenuItem);
 				
 				// Set context menu on row, but use a binding to make it only show for non-empty rows:
 				row.contextMenuProperty().bind(
