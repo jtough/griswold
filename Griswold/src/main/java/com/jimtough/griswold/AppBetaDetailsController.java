@@ -10,6 +10,7 @@ import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.input.KeyCode;
@@ -122,7 +123,9 @@ public class AppBetaDetailsController {
 			Text hostnameLabel = new Text("Hostname");
 			hostnameLabel.setFont(labelFont);
 			gridpane.add(hostnameLabel, 0, 0);
-			gridpane.add(new Text(abs.getHostname()), 1, 0);
+			TextField hostnameValue = new TextField();
+			hostnameValue.textProperty().bindBidirectional(abs.hostnameProperty());
+			gridpane.add(hostnameValue, 1, 0);
 			GridPane.setHalignment(hostnameLabel, HPos.RIGHT);
 			
 			Text statusLabel = new Text("Status");
@@ -174,6 +177,7 @@ public class AppBetaDetailsController {
 
 			stackPane.getChildren().add(gridpane);
 			stage.show();
+			notesText.requestFocus();
 		} catch (Exception e) {
 			removeEffectFromParent();
 		}
