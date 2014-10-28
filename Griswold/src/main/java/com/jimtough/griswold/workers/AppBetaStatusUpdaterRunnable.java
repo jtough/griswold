@@ -24,7 +24,7 @@ public class AppBetaStatusUpdaterRunnable
 	private static final Logger logger =
 			LoggerFactory.getLogger(AppBetaStatusUpdaterRunnable.class);
 
-	private static final int NUMBER_OF_JMX_THREADS = 10;
+	private static final int NUMBER_OF_JMX_THREADS = 15;
 
 	private static final class SimpleThreadFactory implements ThreadFactory {
 		@Override
@@ -49,9 +49,9 @@ public class AppBetaStatusUpdaterRunnable
 			// the remote application, such as its memory usage data
 			RemoteJMXAppClient jmxClient = new RemoteJMXAppClient();
 			
+			// stubbed out
 			//InstanceRuntimeData mud = jmxClient.getInstanceRuntimeData(
 			//		abs.getHostname(), 9999);
-			// stubbed out
 			MutableDateTime fakeStartTime = MutableDateTime.now();
 			fakeStartTime.addDays(-1);
 			InstanceRuntimeData mud = new InstanceRuntimeData(
@@ -93,6 +93,7 @@ public class AppBetaStatusUpdaterRunnable
 			}
 			try {
 				// Create an ExecutorService with a fixed size thread pool
+				logger.debug("Create ExecutorService");
 				ExecutorService executor = Executors.newFixedThreadPool(
 						NUMBER_OF_JMX_THREADS, new SimpleThreadFactory());
 				// Submit each object in the list as a runnable job for the
@@ -106,10 +107,25 @@ public class AppBetaStatusUpdaterRunnable
 						}
 					});
 				}
+				// Request a shutdown of the executor after all requests
+				// have been completed, then wait for the shutdown to
+				// complete gracefully (with a timeout on the wait).
+				executor.shutdown();
+				executor.awaitTermination(60, TimeUnit.SECONDS);
+				logger.debug("ExecutorService completed normally");
+			} catch (InterruptedException ie) {
+				logger.warn("Caught InterruptedException" +
+						" - ignoring", ie);
 			} catch (Exception e) {
 				logger.error("Caught exception" + 
 						" - ignoring, but iterating from start of list", e);
 			}
+			
+			if (Thread.currentThread().isInterrupted()) {
+				logger.warn("Thread flagged as interrupted - exiting");
+				return;
+			}
+			
 			try {
 				// Sleep between each polling cycle so this thread does not
 				// overload the application
@@ -117,7 +133,7 @@ public class AppBetaStatusUpdaterRunnable
 				TimeUnit.SECONDS.sleep(5);
 				logger.info("...wakey! wakey!");
 			} catch (InterruptedException ie) {
-				logger.warn("Caught InterruptedException - exiting", ie);
+				logger.warn("Caught InterruptedException - exiting (2)", ie);
 				return;
 			} finally {
 				
