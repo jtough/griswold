@@ -48,10 +48,9 @@ public class AppBetaStatusUpdaterRunnable
 			// Connect via JMX and retrieve runtime information about
 			// the remote application, such as its memory usage data
 			RemoteJMXAppClient jmxClient = new RemoteJMXAppClient();
-			
+			// stubbed out
 			//InstanceRuntimeData mud = jmxClient.getInstanceRuntimeData(
 			//		abs.getHostname(), 9999);
-			// stubbed out
 			MutableDateTime fakeStartTime = MutableDateTime.now();
 			fakeStartTime.addDays(-1);
 			InstanceRuntimeData mud = new InstanceRuntimeData(
