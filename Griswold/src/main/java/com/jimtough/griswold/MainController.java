@@ -8,7 +8,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -587,6 +586,17 @@ public class MainController {
 			}
 		});
 
+		Button bPlayVideoTutorial = createToolbarButton(
+				SVG_PLAY_MEDIA, "Play video tutorial");
+		bPlayVideoTutorial.setOnAction(actionEvent -> {
+			try {
+				this.toolbar.disableProperty().set(true);
+				this.navController.showVideoPlayer();
+			} finally {
+				this.toolbar.disableProperty().set(false);
+			}
+		});
+		
 		Button bExit = createToolbarButton(
 				SVG_POWER, "Close application");
 		bExit.setOnAction(actionEvent -> navController.exitApplication());
@@ -596,6 +606,7 @@ public class MainController {
 		vBox.getChildren().add(bMonitorAppBeta);
 		vBox.getChildren().add(bCharts);
 		vBox.getChildren().add(bCycleQuote);
+		vBox.getChildren().add(bPlayVideoTutorial);
 		vBox.getChildren().add(bExit);
 
 		this.toolbar = vBox;

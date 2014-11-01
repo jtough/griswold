@@ -1,5 +1,10 @@
 package com.jimtough.griswold;
 
+import java.io.IOException;
+import java.net.JarURLConnection;
+import java.net.URL;
+import java.util.jar.JarFile;
+
 import javafx.application.Platform;
 import javafx.stage.Stage;
 
@@ -15,6 +20,7 @@ public class NavigationController {
 
 	private final Stage primaryStage;
 	private AuthenticatedUser authUser;
+	private VideoPlayerController videoPlayerController;
 
 	public NavigationController(Stage primaryStage) {
 		if (primaryStage == null) {
@@ -39,6 +45,16 @@ public class NavigationController {
 		}
 		setAuthUser(authUser);
 		this.primaryStage.show();
+	}
+
+	public synchronized void showVideoPlayer() {
+		if (this.videoPlayerController == null) {
+			this.videoPlayerController = 
+					new VideoPlayerController(this, this.primaryStage);
+		}
+		this.videoPlayerController.getStage().show();
+		URL sampleVideoUrl = this.getClass().getResource("/big_buck_bunny.mp4");
+		this.videoPlayerController.playMedia(sampleVideoUrl.toExternalForm());
 	}
 	
 	public void exitApplication() {
